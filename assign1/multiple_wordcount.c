@@ -5,21 +5,20 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+// #include <string.h>
 #include <unistd.h>
-#include <sys/types.h>
+// #include <sys/types.h>
 #include <sys/wait.h>
-
+#include <errno.h>
 
 /*
  * This program takes n number of .txt file inputs, a for loop will iterate n times
  * each iteration will call fork, each child process will call wordcount.c
- * #include <sys/wait.h> gave me some trouble on my windows, but using wsl as my terminal was fine
+ * #include <sys/wait.h> gave me some trouble on my windows, but using wsl worked
  */
 
 int main(int argc, char *argv[])
 {
-  int status;
 
   if (!(argc >= 2))
   {
@@ -41,26 +40,27 @@ int main(int argc, char *argv[])
 
       char *program_to_execute = "./wordcount";
       char *filename_argument = argv[i];
-      //Last element must be null for execvp to work
+      // Last element must be null for execvp to work
       char *args[] = {program_to_execute, filename_argument, NULL};
-      //From what I understand, we pass the program to execute as the first parameter, 
-      // and an array of arguments as the second parameter, must be null terminated
+      // From what I understand, we pass the program to execute as the first parameter,
+      //  and an array of arguments as the second parameter, must be null terminated
       execvp(program_to_execute, args);
     }
-    else
-    {
-      // This code executes in the parent process, which needs to wait 
-      // for the child processes to complete to avoid zombies
-      cpid = wait(&status);
 
-      pid_t status = wait(&cpid);
-      if(cpid == -1){
-        perror("something went wrong while waiting");
-      }
-      else if (WIFEXITED(status))
+    // run as many times as needed to wait for all children and avoid zombies
+    for (;;)
+    {
+      pid_t wait_status = wait(&cpid);
+      if ((cpid == -1) && (errno != EINTR))
       {
-        printf("Child %ld terminated with return status: %d\n", (long)cpid, WEXITSTATUS(status));
+        perror("something went wrong while waiting");
+        break;
       }
+      else if (WIFEXITED(wait_status))
+      {
+        printf("Child %ld terminated with return status: %d\n", (long)cpid, WEXITSTATUS(wait_status));
+      }
+      break;
     }
   }
 

@@ -1,0 +1,11 @@
+    this        should          accountfortabs
+
+
+    newlines   space
+
+    this
+
+
+
+
+    file is 10 wordlong

@@ -9,8 +9,7 @@
 #include <unistd.h>
 
 /*
- * Wordcount.c takes one file argument and counts the number of space deliminated words
- * in that file.
+ * Wordcount.c takes one file argument and counts the number of words in that file.
  */
 
 int main(int argc, char *argv[])
@@ -40,34 +39,28 @@ int main(int argc, char *argv[])
   // Catch bad memory allocation, close file
   if (file_contents == NULL)
   {
-    perror("Error allocating memory");
+    perror("could not allocate memory for file contents");
     fclose(file_ptr);
     exit(1);
   }
 
   // Read the file contents into memory
   // fread(write to file_contents, inc by 1 byte, for length of file_size, from file_ptr)
-  //  close the file
+  // close the file
   fread(file_contents, 1, file_size, file_ptr);
   fclose(file_ptr);
 
   // Add null termination to the end of file contents
   file_contents[file_size] = '\0';
 
-  // by default strtok accounts for newline characters as delimiter, so we just need " "
-  // this will take care of multiple spaces in a row, as we see with input_file_2.txt
-  char *token = strtok(file_contents, " ");
-  // If this token is not null, increment count (very first word)
-  // then loop until it is null, incrementing count accordingly (rest of the words)
+  // loop until 'token' is null (end of file) increment for each token
+  // spaces, newlines, carriage returns should be deliminated
+  char *token = strtok(file_contents, " \t\n\r");
   int count = 0;
-  if (token != NULL)
+  while (token != NULL)
   {
     count++;
-    while (token != NULL)
-    {
-      count++;
-      token = strtok(NULL, " ");
-    }
+    token = strtok(NULL, " \t\n\r");
   }
 
   // Compose output string with argument, process id, and count
