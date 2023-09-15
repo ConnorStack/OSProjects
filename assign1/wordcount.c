@@ -19,6 +19,7 @@ int main(int argc, char *argv[])
 {
   if (argc != 2)
   {
+    fprintf(stderr, "usage %s processes\n", argv[0]);
     perror("Program only takes one and only one file input");
     exit(1);
   }
@@ -30,7 +31,7 @@ int main(int argc, char *argv[])
     perror("Either file doesnt exist, or file could not be opened");
     exit(1);
   }
-  int pid = getpid();
+  
   // Move pointer to end of file so we can use ftell to find the byte count
   fseek(file_ptr, 0, SEEK_END);
   int file_size = ftell(file_ptr);
@@ -44,7 +45,7 @@ int main(int argc, char *argv[])
   {
     perror("Error allocating memory");
     fclose(file_ptr);
-    exit(-1);
+    exit(1);
   }
 
   //Read the file contents into memory 
@@ -72,8 +73,11 @@ int main(int argc, char *argv[])
     }
   }
 
-  printf("\n\nNumber of words found: %d\n", count);
-  printf("In process %d\n", pid);
+  char *filename = argv[1];
+  pid_t pid = getpid();
+  // printf("\n\nWord count with process %d counted words in file %s: number of words is... %d\n", pid, filename, count);
+  // printf("\n\nCounted words in file %s: number of words is... %d\n", filename, count);
+  printf("\n\nWordcount with process: %d counted words in file %s: number of words is... %d\n", pid, filename, count);
   free(file_contents);
 
   exit(0);
