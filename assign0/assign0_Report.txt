@@ -1,0 +1,9 @@
+1. I worked alone
+
+2. I do not, I had a hard time getting readLine to work properly for the name portion of the student cell. Using a hard coded char array of some arbitrary size I was able to get it working. Using readline I would either get garbage values or when I would make a new student cell's name, that name would be displayed for each student cell. So the pointer to the name value was being shared by all cells. Every time I chose "show all students in linked list" I would have this issue. Eventually I came accross a suggestion to use strdup() to try and get over this shared space, but there were some further memory allocation errors when I used valgrind. Overall this "case 1, add a new student cell" took most of my time. I build a linked list in C++ for datastructures, so the linked list itself was challenging but I had some good notes to go off of. 
+
+I think my architecture could have been better. I think readline() was too big, and probably could have been broken into sub methods. I think my naming convention was OK but not great. I think this was a challenging project and took me a solid 3-4 days of tinkering with it. 
+
+3. Most of it seems to be working. Steps 2-8 seem to work as intended. If 'name' using ReadLine() wasnt part of the student cell then step 1 would be working as intended. 
+
+4. I thought this was a challenging project.This was quite a time consuming project for a assignment0, but it was a good refresher for linked lists.
