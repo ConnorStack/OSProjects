@@ -1,0 +1,21 @@
+Create a REPORT.txt file to answer the following questions:
+
+1. List all of the people that you have collaborated with on this assignment (discussing high-level ideas are OK, but never share implementation details or code). For each person indicate the level of collaboration (small, medium, large). Also write a few sentences describing what was discussed. Indicate whether you were mainly giving help or receiving help.
+
+None
+
+2. Do you think everything you did is correct? ...
+
+I have a loose understanding of the macros used. I know that fork makes the program asynchronous and thats why we need wait. The parent will wait for the children, and these children may finish is any order. We want to check their exit status and act accordingly. The logic in my for(;;) loop seems to work, but I am not 100% confident that what I wrote was the most eligant solution. 
+
+I am pretty sure that the forking is done correctly and the word counting is done correctly.
+
+3. If not, give a brief description of what is working and what progress was made on the part that is not working.
+
+I think the macros are working, but I would need to dive deeper to get a more robust understanding of other macros. I only understand execvp since I found some good resources explaining how it can be used. To get more understanding I would have to explore the other exec functions as well before being confident in which exec is best for the job.
+
+
+4. Comments (e.g., what were the challenges, how to make this assignment more interesting etc.):
+
+Using strtok wasn't too bad, but I had some minor issues getting the appropriate count. I was having one-off errors and wasn't sure why, but after including more to the delimination (\t\n\r) it seemed to work. 
+Forking wasn't too bad once I figured out execvp, but the for(;;) loop for the parent to wait took me the longest to understand and implement.

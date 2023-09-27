@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/types.h>
 
 /*
  * Wordcount.c takes one file argument and counts the number of words in that file.
@@ -14,9 +15,10 @@
 
 int main(int argc, char *argv[])
 {
+  //Argument count must be exactly 2
   if (argc != 2)
   {
-    perror("Program only takes one and only one file input");
+    perror("\nProgram only takes one and only one file input\n");
     exit(1);
   }
 
@@ -24,7 +26,7 @@ int main(int argc, char *argv[])
   // Catch failed fopen
   if (file_ptr == NULL)
   {
-    perror("Either file doesnt exist, or file could not be opened");
+    perror("\nEither file doesnt exist, or file could not be opened ");
     exit(1);
   }
 
@@ -39,7 +41,7 @@ int main(int argc, char *argv[])
   // Catch bad memory allocation, close file
   if (file_contents == NULL)
   {
-    perror("could not allocate memory for file contents");
+    perror("\ncould not allocate memory for file contents\n");
     fclose(file_ptr);
     exit(1);
   }
@@ -60,7 +62,7 @@ int main(int argc, char *argv[])
   while (token != NULL)
   {
     count++;
-    token = strtok(NULL, " \t\n\r");
+    token = strtok(NULL, " \t\n\r"); 
   }
 
   // Compose output string with argument, process id, and count
