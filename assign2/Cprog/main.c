@@ -39,6 +39,7 @@ typedef struct sortAndAvgStruct
     double *sortArray;
     double average;
     int count;
+    int isThread;
 } sort_struct;
 
 typedef struct mergeStruct
@@ -61,8 +62,8 @@ int main(int argc, char *argv[])
     pthread_mutex_init(&lock, NULL); //---
     pthread_t tid1, tid2, tid3;
     srand(time(NULL));
-    // struct timespec ts_begin, ts_end;
-    // double elapsed;
+    struct timespec ts_begin, ts_end;
+    double elapsed;
     int n;
     // Validate argument
     if (argc != 2)
@@ -73,8 +74,21 @@ int main(int argc, char *argv[])
     n = atoi(argv[1]);
     // create two arrays of equal length, if n is odd, it is rounded down
     int half = n / 2;
-    // I will use n later, I want to make sure it is consistent if we had to round down, so mult by 2
-    n = half * 2;
+
+    // clock_gettime(CLOCK_MONOTONIC, &ts_begin);
+    // clock_gettime(CLOCK_MONOTONIC, &ts_end);
+    // elapsed = ts_end.tv_sec - ts_begin.tv_sec;
+    // elapsed += (ts_end.tv_nsec - ts_begin.tv_nsec) / 1000000000.0;
+
+    double *non_threaded_array = (double *)buildRandArrayOfLength(n);
+
+    sort_struct non_thread_struct;
+    non_thread_struct.sortArray = non_threaded_array;
+    non_thread_struct.average = 0.0;
+    non_thread_struct.count = n;
+    non_thread_struct.isThread = 1;
+    double *sortedArr = sortThreadFunc(&non_thread_struct);
+
     double *firstHalf = (double *)buildRandArrayOfLength(half);
     double *secondHalf = (double *)buildRandArrayOfLength(half);
 
@@ -83,10 +97,15 @@ int main(int argc, char *argv[])
     sort_struct_firsthalf.sortArray = firstHalf;
     sort_struct_firsthalf.average = 0;
     sort_struct_firsthalf.count = half;
+    sort_struct_firsthalf.isThread = 0;
 
     sort_struct_secondhalf.sortArray = secondHalf;
     sort_struct_secondhalf.average = 0;
     sort_struct_secondhalf.count = half;
+    sort_struct_secondhalf.isThread = 0;
+
+
+    clock_gettime(CLOCK_MONOTONIC, &ts_begin);
 
     // create two threads to sort each array
     pthread_create(&tid1, NULL, sortThreadFunc, (void *)&sort_struct_firsthalf);
@@ -98,6 +117,11 @@ int main(int argc, char *argv[])
     // join threads
     pthread_join(tid1, (void **)&sortedFromThread1);
     pthread_join(tid2, (void **)&sortedFromThread2);
+
+    clock_gettime(CLOCK_MONOTONIC, &ts_end);
+    elapsed = (ts_end.tv_sec - ts_begin.tv_sec) * 1000.0;
+    elapsed += (ts_end.tv_nsec - ts_begin.tv_nsec) / 1000000.0;
+    printf("Elapsed time: %.2f ms\n", elapsed);
     // going to need these arrays for the next thread
     //  double *sortedArr1 = sortedFromThread1->sortArray;
     //  double *sortedArr2 = sortedFromThread2->sortArray;
@@ -152,7 +176,7 @@ void *mergeThreadFunc(void *arg)
             m++;
         }
     }
-    
+
     double average = localMergeStruct->firstHalfAvg + localMergeStruct->secondHalfAvg / 2;
     localMergeStruct->mergedAvg = average;
 
@@ -163,6 +187,9 @@ void *mergeThreadFunc(void *arg)
 // thread function to sort an array and find the average of its content. Both located inside a struct.
 void *sortThreadFunc(void *arg)
 {
+    //start clock
+    struct timespec ts_begin;
+    clock_gettime(CLOCK_MONOTONIC, &ts_begin);
     // make a local ptr of sort_struct type so we can access the struct passed to the thread
     sort_struct *localStruct;
     localStruct = (sort_struct *)arg;
@@ -170,6 +197,7 @@ void *sortThreadFunc(void *arg)
     int arrLen = localStruct->count;
 
     double total = 0;
+
 
     // total the array
     for (int n = 0; n < arrLen; n++)
@@ -206,11 +234,25 @@ void *sortThreadFunc(void *arg)
     {
         printf("Array content: %f\n", localStruct->sortArray[i]);
     }
+    struct timespec ts_end;
+    clock_gettime(CLOCK_MONOTONIC, &ts_end);
+
+    // Calculate elapsed time in milliseconds
+    double elapsed = (ts_end.tv_sec - ts_begin.tv_sec) * 1000.0;
+    elapsed += (ts_end.tv_nsec - ts_begin.tv_nsec) / 1000000.0;
+    printf("Sorting time: %.2f ms\n", elapsed);
+    printf("avg : %f\n", localStruct->average);
+    printf("count : %d\n", localStruct->count);
+
     pthread_mutex_unlock(&lock); // --------
     printf("avg : %f\n", localStruct->average);
     printf("count : %d\n", localStruct->count);
-    pthread_exit((void *)localStruct);
+    printf("hello\n");
 
+    if(localStruct->isThread == 0){
+        pthread_exit((void *)localStruct);
+    }
+    printf("hello\n");
     return NULL;
 }
 
