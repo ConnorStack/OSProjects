@@ -7,4 +7,4 @@ clean:
 	rm -f *.o cprog
 
 cprog: main.c
-	$(CC) $(CFLAGS) main.c -o cprog
+	$(CC) $(CFLAGS) main.c -o cprog -lpthread
