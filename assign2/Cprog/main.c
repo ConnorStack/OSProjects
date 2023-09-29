@@ -33,19 +33,19 @@ merge_struct build_merge_struct(double *first_half, double *second_half, int len
 
 int main(int argc, char *argv[])
 {
-    // pthread_mutex_init(&lock, NULL); //---
     pthread_t tid1, tid2, tid3;
     srand(time(NULL));
     struct timespec ts_begin, ts_end;
     double elapsed;
     int n, is_threaded;
+
     // Validate argument
     if (argc != 2)
     {
         return 1;
     }
-
     n = atoi(argv[1]);
+
     // create two arrays of equal length, if n is odd, it is rounded down
     int half_n = n / 2;
 
@@ -53,40 +53,29 @@ int main(int argc, char *argv[])
     double *non_threaded_array = (double *)build_rand_array(n);
     is_threaded = 1;
     sort_struct non_thread_struct = build_sort_struct(non_threaded_array, n, is_threaded);
+    clock_gettime(CLOCK_MONOTONIC, &ts_begin);
     double *sorted_arr = sorting_avg(&non_thread_struct);
-    // non_thread_struct.sorted_array = non_threaded_array;
-    // non_thread_struct.average = 0.0;
-    // non_thread_struct.count = n;
-    // non_thread_struct.is_thread = 1;
-    
+    clock_gettime(CLOCK_MONOTONIC, &ts_end);
+    elapsed = (ts_end.tv_sec - ts_begin.tv_sec) * 1000.0;
+    elapsed += (ts_end.tv_nsec - ts_begin.tv_nsec) / 1000000.0;
+    printf("Sorting is done in %.2f ms when one thread is used\n", elapsed);
 
+    //build two random arrays of type double, size n/2
     double *first_half = (double *)build_rand_array(half_n);
     double *second_half = (double *)build_rand_array(half_n);
-
-    // initialize the structs with info we will need in the thread
+    //set is_threaded to true
     is_threaded = 0;
+    //build the structs to pass to pthread_create
     sort_struct sort_struct_firsthalf, sort_struct_secondhalf;
     sort_struct_firsthalf = build_sort_struct(first_half, half_n, is_threaded);
     sort_struct_secondhalf = build_sort_struct(second_half, half_n, is_threaded);
-    // sort_struct sort_struct_firsthalf, sort_struct_secondhalf;
-    // sort_struct_firsthalf.sorted_array = first_half;
-    // sort_struct_firsthalf.average = 0;
-    // sort_struct_firsthalf.count = half;
-    // sort_struct_firsthalf.is_threaded = 0;
-
-    // sort_struct_secondhalf.sorted_array = second_half;
-    // sort_struct_secondhalf.average = 0;
-    // sort_struct_secondhalf.count = half;
-    // sort_struct_secondhalf.is_threaded = 0;
-
-
+    
     clock_gettime(CLOCK_MONOTONIC, &ts_begin);
-
-    // create two threads to sort each array
+    // create two threads to sort each array and find averages
     pthread_create(&tid1, NULL, sorting_avg, (void *)&sort_struct_firsthalf);
     pthread_create(&tid2, NULL, sorting_avg, (void *)&sort_struct_secondhalf);
 
-    // prepping variables to use after pthread_join
+    //variables to store thread output after pthread_join
     sort_struct *sorted_t1, *sorted_t2;
     // join threads
     pthread_join(tid1, (void **)&sorted_t1);
@@ -95,7 +84,7 @@ int main(int argc, char *argv[])
     clock_gettime(CLOCK_MONOTONIC, &ts_end);
     elapsed = (ts_end.tv_sec - ts_begin.tv_sec) * 1000.0;
     elapsed += (ts_end.tv_nsec - ts_begin.tv_nsec) / 1000000.0;
-    printf("Main elapsed time: %.2f ms\n", elapsed);
+    printf("Sorting is done in %.2f ms when two threads are used\n", elapsed);
     // going to need these arrays for the next thread
     //  double *sortedArr1 = sortedFromThread1->sortArray;
     //  double *sortedArr2 = sortedFromThread2->sortArray;
@@ -202,25 +191,9 @@ void *sorting_avg(void *arg)
         }
         local_struct->sorted_array[i + 1] = insert_value;
     }
-
-    for (int i = 0; i < arr_len; i++)
-    {
-        printf("Array content: %f\n", local_struct->sorted_array[i]);
-    }
-    struct timespec ts_end;
-    clock_gettime(CLOCK_MONOTONIC, &ts_end);
-
-    // Calculate elapsed time in milliseconds
-    double elapsed = (ts_end.tv_sec - ts_begin.tv_sec) * 1000.0;
-    elapsed += (ts_end.tv_nsec - ts_begin.tv_nsec) / 1000000.0;
-    // printf("Sorting time: %.2f ms\n", elapsed);
-    // pthread_mutex_unlock(&lock); // --------
-
+    
     if(local_struct->is_threaded == 0){
-        printf("Threaded sorting time: %.2f ms\n", elapsed);
         pthread_exit((void *)local_struct);
-    }else{
-        printf("Non-threaded sorting time: %.2f ms\n", elapsed);
     }
     return NULL;
 }
