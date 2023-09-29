@@ -23,13 +23,14 @@ typedef struct merging_struct
     double first_half_avg;
     double second_half_avg;
     double merged_avg;
+    int is_threaded;
 } merge_struct;
 
 double *build_rand_array(int len);
 void *sorting_avg(void *arg);
 void *merging_avg(void *arg);
 sort_struct build_sort_struct(double *sortArray, int count, int is_threaded);
-merge_struct build_merge_struct(double *first_half, double *second_half, int len);
+merge_struct build_merge_struct(double *first_half, double *second_half, int len, int is_threaded);
 
 int main(int argc, char *argv[])
 {
@@ -49,14 +50,23 @@ int main(int argc, char *argv[])
     // -------------------------------------------------------------
     // -------------------- NON THREADED SECTION -------------------
     // -------------------------------------------------------------
-    // Building the struct for a non-threaded sorting_avg. Using is_threaded as a boolean integer to circumvent pthread_exit in sorting_avg
+    // Building the struct for a non-threaded sorting_avg.
+    // Using is_threaded as a boolean integer to circumvent pthread_exit in sorting_avg
+    double *nont_first_half = (double *)build_rand_array(half_n);
+    double *nont_second_half = (double *)build_rand_array(half_n);
     double *non_threaded_array = (double *)build_rand_array(n);
     is_threaded = 1;
-    sort_struct non_thread_struct = build_sort_struct(non_threaded_array, n, is_threaded);
+    sort_struct nont_first_struct = build_sort_struct(nont_first_half, n/2, is_threaded);
+    sort_struct nont_second_struct = build_sort_struct(nont_second_half, n/2, is_threaded);
 
     // Clocking and running the non threaded implementation
     clock_gettime(CLOCK_MONOTONIC, &ts_begin);
-    sorting_avg(&non_thread_struct);
+    sorting_avg(&nont_first_struct);
+    sorting_avg(&nont_second_struct);
+
+    //Creating merge_struct after sorting_avg is called so it contains the correct values
+    merge_struct nont_merge_struct = build_merge_struct(nont_first_struct.sorted_array, nont_second_struct.sorted_array, n, is_threaded);
+    merging_avg(&nont_merge_struct);
     clock_gettime(CLOCK_MONOTONIC, &ts_end);
 
     // Display the results
@@ -89,16 +99,22 @@ int main(int argc, char *argv[])
     pthread_join(tid2, (void **)&sorted_t2);
 
     //Stop the clock, and display values
+    // clock_gettime(CLOCK_MONOTONIC, &ts_end);
+    // elapsed = (ts_end.tv_sec - ts_begin.tv_sec) * 1000.0;
+    // elapsed += (ts_end.tv_nsec - ts_begin.tv_nsec) / 1000000.0;
+    // printf("Sorting is done in %.2f ms when two threads are used\n", elapsed);
+
+    // Create thread to merge the arrays from sorted_t1 and sorted_t2
+    merge_struct merge_arr_struct = build_merge_struct(sorted_t1->sorted_array, sorted_t2->sorted_array, n, is_threaded);
+    pthread_create(&tid3, NULL, merging_avg, (void *)&merge_arr_struct);
+    merge_struct *merged_t3;
+    pthread_join(tid3, (void **)&merged_t3);
+
+    //Stop the clock, and display values
     clock_gettime(CLOCK_MONOTONIC, &ts_end);
     elapsed = (ts_end.tv_sec - ts_begin.tv_sec) * 1000.0;
     elapsed += (ts_end.tv_nsec - ts_begin.tv_nsec) / 1000000.0;
     printf("Sorting is done in %.2f ms when two threads are used\n", elapsed);
-
-    // Create thread to merge the arrays from sorted_t1 and sorted_t2
-    merge_struct merge_arr_struct = build_merge_struct(sorted_t1->sorted_array, sorted_t2->sorted_array, n);
-    pthread_create(&tid3, NULL, merging_avg, (void *)&merge_arr_struct);
-    merge_struct *merged_t3;
-    pthread_join(tid3, (void **)&merged_t3);
 
     //Free allocated memory 
     free(first_half);
@@ -134,8 +150,12 @@ void *merging_avg(void *arg)
     //Calculate average
     double average = local_merge_struct->first_half_avg + local_merge_struct->second_half_avg / 2;
     local_merge_struct->merged_avg = average;
+    
+    if (local_merge_struct->is_threaded == 0)
+    {
+        pthread_exit((void *)local_merge_struct);
+    }
 
-    pthread_exit((void *)local_merge_struct);
     return NULL;
 }
 
@@ -219,7 +239,7 @@ sort_struct build_sort_struct(double *sorted_array, int count, int is_threaded)
     return sstruct;
 }
 
-merge_struct build_merge_struct(double *first_half, double *second_half, int len)
+merge_struct build_merge_struct(double *first_half, double *second_half, int len, int is_threaded)
 {
     merge_struct mstruct;
     mstruct.first_half_arr = first_half;
@@ -232,6 +252,7 @@ merge_struct build_merge_struct(double *first_half, double *second_half, int len
     mstruct.full_length = len;
     mstruct.first_half_avg = 0.0;
     mstruct.second_half_avg = 0.0;
+    mstruct.is_threaded = is_threaded;
 
     return mstruct;
 }
