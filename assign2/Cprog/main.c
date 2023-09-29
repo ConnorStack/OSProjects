@@ -56,17 +56,18 @@ int main(int argc, char *argv[])
     double *nont_second_half = (double *)build_rand_array(half_n);
     double *non_threaded_array = (double *)build_rand_array(n);
     is_threaded = 1;
-    sort_struct nont_first_struct = build_sort_struct(nont_first_half, n/2, is_threaded);
-    sort_struct nont_second_struct = build_sort_struct(nont_second_half, n/2, is_threaded);
+    sort_struct nont_first_struct = build_sort_struct(nont_first_half, n / 2, is_threaded);
+    sort_struct nont_second_struct = build_sort_struct(nont_second_half, n / 2, is_threaded);
 
     // Clocking and running the non threaded implementation
     clock_gettime(CLOCK_MONOTONIC, &ts_begin);
     sorting_avg(&nont_first_struct);
     sorting_avg(&nont_second_struct);
 
-    //Creating merge_struct after sorting_avg is called so it contains the correct values
+    // Creating merge_struct after sorting_avg is called so it contains the correct values
     merge_struct nont_merge_struct = build_merge_struct(nont_first_struct.sorted_array, nont_second_struct.sorted_array, n, is_threaded);
     merging_avg(&nont_merge_struct);
+
     clock_gettime(CLOCK_MONOTONIC, &ts_end);
 
     // Display the results
@@ -88,21 +89,21 @@ int main(int argc, char *argv[])
     sort_struct_firsthalf = build_sort_struct(first_half, half_n, is_threaded);
     sort_struct_secondhalf = build_sort_struct(second_half, half_n, is_threaded);
 
-    //Clocking and running sorting_avg threads
+    // Clocking and running sorting_avg threads
     clock_gettime(CLOCK_MONOTONIC, &ts_begin);
     pthread_create(&tid1, NULL, sorting_avg, (void *)&sort_struct_firsthalf);
     pthread_create(&tid2, NULL, sorting_avg, (void *)&sort_struct_secondhalf);
 
-    //Join threads, sorted_t1 and sorted_t2 will contain content needed for the last thread
+    // Join threads, sorted_t1 and sorted_t2 will contain content needed for the last thread
     sort_struct *sorted_t1, *sorted_t2;
     pthread_join(tid1, (void **)&sorted_t1);
     pthread_join(tid2, (void **)&sorted_t2);
 
-    //Stop the clock, and display values
-    // clock_gettime(CLOCK_MONOTONIC, &ts_end);
-    // elapsed = (ts_end.tv_sec - ts_begin.tv_sec) * 1000.0;
-    // elapsed += (ts_end.tv_nsec - ts_begin.tv_nsec) / 1000000.0;
-    // printf("Sorting is done in %.2f ms when two threads are used\n", elapsed);
+    // Stop the clock, and display values
+    //  clock_gettime(CLOCK_MONOTONIC, &ts_end);
+    //  elapsed = (ts_end.tv_sec - ts_begin.tv_sec) * 1000.0;
+    //  elapsed += (ts_end.tv_nsec - ts_begin.tv_nsec) / 1000000.0;
+    //  printf("Sorting is done in %.2f ms when two threads are used\n", elapsed);
 
     // Create thread to merge the arrays from sorted_t1 and sorted_t2
     merge_struct merge_arr_struct = build_merge_struct(sorted_t1->sorted_array, sorted_t2->sorted_array, n, is_threaded);
@@ -110,13 +111,13 @@ int main(int argc, char *argv[])
     merge_struct *merged_t3;
     pthread_join(tid3, (void **)&merged_t3);
 
-    //Stop the clock, and display values
+    // Stop the clock, and display values
     clock_gettime(CLOCK_MONOTONIC, &ts_end);
     elapsed = (ts_end.tv_sec - ts_begin.tv_sec) * 1000.0;
     elapsed += (ts_end.tv_nsec - ts_begin.tv_nsec) / 1000000.0;
     printf("Sorting is done in %.2f ms when two threads are used\n", elapsed);
 
-    //Free allocated memory 
+    // Free allocated memory
     free(first_half);
     free(second_half);
     free(non_threaded_array);
@@ -132,25 +133,32 @@ void *merging_avg(void *arg)
     int n = 0;
     int m = 0;
     int length = local_merge_struct->full_length;
+    int first_half_length = length / 2;
+    int second_half_length = length / 2;
 
-    // Taking both n/2 arrays and merging them into a n lengh array. 
+    // Taking both n/2 arrays and merging them into a n lengh array.
+    // If n is less than firstHalf.length, then we expect more n indexed values to be merged.
+    // Now one of two things is possible, either values indexed from m are full (in which case we know all others will be n indexed)
+    // Or our standard case, n index value is less than m index value, so it should be placed in the merged array
+    // m == second half length means m index is full or firsthalf[n] < secondHalf[m]
     for (int i = 0; i < length; i++)
     {
-        if ((local_merge_struct->first_half_arr[n] < local_merge_struct->second_half_arr[m]))
+
+        if ((n < first_half_length) && ((m == second_half_length) || (local_merge_struct->first_half_arr[n] < local_merge_struct->second_half_arr[m])))
         {
             local_merge_struct->merge_array[i] = local_merge_struct->first_half_arr[n];
             n++;
         }
-        else
+        else if (m < second_half_length)
         {
             local_merge_struct->merge_array[i] = local_merge_struct->second_half_arr[m];
             m++;
         }
     }
-    //Calculate average
+    // Calculate average
     double average = local_merge_struct->first_half_avg + local_merge_struct->second_half_avg / 2;
     local_merge_struct->merged_avg = average;
-    
+
     if (local_merge_struct->is_threaded == 0)
     {
         pthread_exit((void *)local_merge_struct);

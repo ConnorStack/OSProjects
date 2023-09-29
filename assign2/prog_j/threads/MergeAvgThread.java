@@ -39,11 +39,17 @@ public class MergeAvgThread extends Thread {
 
     private double[] mergeArrays(double[] firstHalf, double[] secondHalf) {
         int n, m;
+        //corresponds to first half
         n = 0;
+        //corresponds to second half
         m = 0;
 
         for (int i = 0; i < fullLen; i++) {
-            if (n < firstHalf.length && (m == secondHalf.length || firstHalf[n] <= secondHalf[m])) {
+            //If n is less than firstHalf.length, then we expect more n indexed values to be merged.
+            //Now one of two things is possible, either values indexed from m are full (in which case we know all others will be n indexed)
+            //Or our standard case, n index value is less than m index value, so it should be placed in the merged array
+            //m == second half length means m index is full or firsthalf[n] < secondHalf[m]
+            if (n < firstHalf.length && (m == secondHalf.length || firstHalf[n] < secondHalf[m])) {
                 mergedArray[i] = firstHalf[n];
                 n++;
             } else if (m < secondHalf.length) {
