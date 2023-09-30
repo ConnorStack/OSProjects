@@ -1,3 +1,8 @@
+/*
+ * Job of the class is to generate random double arrays
+ * File: BuildRandomDoubleArray.java
+ * Author: Connor Stack
+ */
 package prog_j.threads;
 
 import java.util.Random;

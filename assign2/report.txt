@@ -1,0 +1,97 @@
+
+1. List all of the people that you have collaborated with on this assignment. For each person indicate the level of collaboration (small, medium, large). Also write a few sentences describing what was discussed. Indicate whether you were mainly giving help or receiving help.
+none
+
+2. Do you think everything you did is correct? 
+No, my thread times in C were not as good as I had expected. I had timed the sort_avg thread alone which consistently did better than the single threaded implementation, but when I timed the sort_avg and the merge_avg together. Threads did worse at first. Eventually multi-threading was faster, maxing out at about x2 speed. I ran 100,000 and still had roughly x2 speed improvement 
+
+I now have a basic understanding of thread implementation; however I don't feel confident with locking mechanisms. I was trying to introduce some locking implementation when I had some unexpected behavior, but nothing changed, and it turned out to be faulty logic. So I understand the idea of locking, but I don't know when exactly when it is appropriate. 
+
+3. If not, give a brief description of what is working and what progress was made on the part that is not working.
+C program thread timing may be wrongly placed. Meaning clock_gettime(CLOCK_MONOTONIC, &ts_begin) / clock_gettime(CLOCK_MONOTONIC, &ts_end); may not be placed in the correct place
+
+This project was quite time consuming for me. Once the C program is done, the Java program is a breeze, but it took some work. Probably 3 days, and a total of 10+ hours to get all comments, all clean code, all correct output ...
+
+4. Comments (e.g., what were the challenges, how to make this assignment more interesting etc.):
+Getting the hang of passing a struct properly and joining it correctly took trial and error. Conceptually it was not too bad (still challenging).
+
+I had some piece of conditional logic wrong in the beginning of a thread and spent a long time thinking I was creating the thread incorrectly. Once I could pass a struct and return it to main, accessing it was not too hard. I incorrectly joined them at first, but after that It wasn't too bad. Playing with these things for the first time is always hard.
+
+One comment that makes me unsure if I did it all correctly, every now and again the multi-threads would be slower than the single-threads.
+
+
+5. Program output: (if you print anything on the screen, then copy/paste it here. don't copy/paste output files here)
+
+Comments on output: C program is significantly faster overall. But my threads didn't do as well which makes me think I did something wrong
+
+________________________________________________________________________________________________________________
+
+Java results, thread vs no thread
+1000 : twice as fast
+5000 : four times as fast
+10000 : eight times as fast
+
+C results, thread vs no thread
+1000 : twice as slow
+5000 : twice as fast
+10000 : twice as fast
+
+________________________________________________________________________________________________________________
+
+JAVA OUTPUT, TESTING 1000, 5000, 10000 TWICE EACH
+________________________________________________________________________________________________________________
+
+$ java prog_j.threads.Main 1000
+Sorting is done in 1.9258ms when one thread is used
+Sorting is done in 1.6395ms when two threads are used
+
+$ java prog_j.threads.Main 1000
+Sorting is done in 2.1186ms when one thread is used
+Sorting is done in 0.6827ms when two threads are used
+
+$ java prog_j.threads.Main 5000
+Sorting is done in 8.1626ms when one thread is used
+Sorting is done in 1.2598ms when two threads are used
+
+$ java prog_j.threads.Main 5000
+Sorting is done in 8.4373ms when one thread is used
+Sorting is done in 1.114ms when two threads are used
+
+$ java prog_j.threads.Main 10000
+Sorting is done in 14.5844ms when one thread is used
+Sorting is done in 2.8204ms when two threads are used
+
+Connor Stack@DESKTOP-H7F119K MINGW64 ~/Documents/UTSA/FALL_2023/Operating Systems/OSProjectsRepo/assign2 (main)
+$ java prog_j.threads.Main 10000
+Sorting is done in 14.3219ms when one thread is used
+Sorting is done in 3.0163ms when two threads are used
+________________________________________________________________________________________________________________
+
+C OUTPUT, TESTING 1000, 5000, 10000 TWICE EACH
+________________________________________________________________________________________________________________
+
+Systems/OSProjectsRepo/assign2/Cprog$ ./cprog 1000
+Sorting is done in 0.21 ms when one thread is used
+Sorting is done in 0.64 ms when two threads are used
+
+Systems/OSProjectsRepo/assign2/Cprog$ ./cprog 1000
+Sorting is done in 0.22 ms when one thread is used
+Sorting is done in 0.57 ms when two threads are used
+
+
+Systems/OSProjectsRepo/assign2/Cprog$ ./cprog 5000
+Sorting is done in 4.90 ms when one thread is used
+Sorting is done in 2.76 ms when two threads are used
+
+Systems/OSProjectsRepo/assign2/Cprog$ ./cprog 5000
+Sorting is done in 4.79 ms when one thread is used
+Sorting is done in 2.79 ms when two threads are used
+
+Systems/OSProjectsRepo/assign2/Cprog$ ./cprog 10000
+Sorting is done in 18.55 ms when one thread is used
+Sorting is done in 10.45 ms when two threads are used
+
+Systems/OSProjectsRepo/assign2/Cprog$ ./cprog 10000
+Sorting is done in 18.50 ms when one thread is used
+Sorting is done in 10.57 ms when two threads are used
+________________________________________________________________________________________________________________

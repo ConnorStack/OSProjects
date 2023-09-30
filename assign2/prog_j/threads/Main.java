@@ -1,3 +1,8 @@
+/*
+ * Job of the class is to demonstrate thread vs non thread runtime
+ * File: Main.java
+ * Author: Connor Stack
+ */
 package prog_j.threads;
 
 public class Main {
@@ -32,7 +37,6 @@ public class Main {
                 secondHalfSorter.getSortedArray());
 
         mergeAvgThread.nonThreadedMergeAvgThread();
-        System.out.println(mergeAvgThread.getAverage());
         long endNonThreadTime = System.nanoTime();
         System.out.println(
                 "Sorting is done in " + getElapsedTime(nonThreadTime, endNonThreadTime) + "ms when one thread is used");
@@ -65,7 +69,6 @@ public class Main {
             e.printStackTrace();
         }
 
-        System.out.println(threadedMergeAvg.getAverageByThread());
         long endThreadedTime = System.nanoTime();
         System.out.println(
                 "Sorting is done in " + getElapsedTime(threadedTime, endThreadedTime) + "ms when two threads are used");

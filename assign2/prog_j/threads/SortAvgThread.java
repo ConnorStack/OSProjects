@@ -1,3 +1,9 @@
+/*
+ * Job of the class is to sort double arrays in non descending order
+ * averages are calculated as arbitrary addition to business logic
+ * File: SortAvgThread.java
+ * Author: Connor Stack
+ */
 package prog_j.threads;
 
 public class SortAvgThread extends Thread {

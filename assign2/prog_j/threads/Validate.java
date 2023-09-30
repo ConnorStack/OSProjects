@@ -1,3 +1,8 @@
+/*
+ * Job of the class is validate command line args 
+ * File: Validate.java
+ * Author: Connor Stack
+ */
 package prog_j.threads;
 
 public class Validate {

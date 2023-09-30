@@ -1,3 +1,9 @@
+/*
+ * Job of the class is to merge two double arrays of equal size in non descending order
+ * averages are calculated as arbitrary addition to business logic
+ * File: MergeAvgThread.java
+ * Author: Connor Stack
+ */
 package prog_j.threads;
 
 public class MergeAvgThread extends Thread {
