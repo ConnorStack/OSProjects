@@ -11,7 +11,7 @@ public class Main {
         int half_n = n / 2;
         n *= 2;
 
-        // arraySorter takes size n and creates an object of BuildRandomDoubleArray
+        // ArraySortBuilder takes size n and creates an object of BuildRandomDoubleArray
         // which creates a random double array
         // it then sends the random array into the constructor of SortAvgThread, which
         // preps the object with everything it needs before sorting
@@ -27,18 +27,15 @@ public class Main {
 
         firstHalfSorter.sortArrNonThread();
         secondHalfSorter.sortArrNonThread();
+
         MergeAvgThread mergeAvgThread = new MergeAvgThread(firstHalfSorter.getSortedArray(),
                 secondHalfSorter.getSortedArray());
+
         mergeAvgThread.nonThreadedMergeAvgThread();
-
         System.out.println(mergeAvgThread.getAverage());
-
         long endNonThreadTime = System.nanoTime();
         System.out.println(
                 "Sorting is done in " + getElapsedTime(nonThreadTime, endNonThreadTime) + "ms when one thread is used");
-
-        // displayDoubleArr(firstHalfSorter.getSortedArray());
-        // displayDoubleArr(secondHalfSorter.getSortedArray());
 
         // As earlier in the program, arraySortBuilder will create a couple more objects
         // that will contain random double arrays
@@ -58,7 +55,7 @@ public class Main {
         }
 
         MergeAvgThread threadedMergeAvg = new MergeAvgThread(threadedSorterFirstHalf.getSortedArrayByThread(),
-                                                            threadedSorterSecondHalf.getSortedArrayByThread());
+                threadedSorterSecondHalf.getSortedArrayByThread());
         threadedMergeAvg.threadedMergeAvgThread();
         threadedMergeAvg.start();
         try {
@@ -72,11 +69,9 @@ public class Main {
         long endThreadedTime = System.nanoTime();
         System.out.println(
                 "Sorting is done in " + getElapsedTime(threadedTime, endThreadedTime) + "ms when two threads are used");
-
-        // displayDoubleArr(threadedSorterFirstHalf.getSortedArrayByThread());
-        // displayDoubleArr(threadedSorterSecondHalf.getSortedArrayByThread());
     }
 
+    //this method isn't very necessary, just cutting down on main() bloat
     public static void startThread(SortAvgThread threadedSorterFirstHalf, SortAvgThread threadedSorterSecondHalf) {
         threadedSorterFirstHalf.sortArrByThread();
         threadedSorterFirstHalf.start();
@@ -84,6 +79,7 @@ public class Main {
         threadedSorterSecondHalf.start();
     }
 
+    //For debugging
     public static void displayDoubleArr(double[] dArr) {
         System.out.println();
         for (int i = 0; i < dArr.length; i++) {
@@ -92,11 +88,13 @@ public class Main {
 
     }
 
+    //Method to get elapsed time
     public static double getElapsedTime(long start, long end) {
         double elapsed = (end - start) / 1e6;
         return elapsed;
     }
 
+    //The intention of this method is to prepare SortAvgThread with randomArray object, obfuscating some implementation that lead to main() bloat
     public static SortAvgThread arraySortBuilder(int n) {
         BuildRandomDoubleArray randomArray = new BuildRandomDoubleArray(n);
         SortAvgThread arraySorter = new SortAvgThread(randomArray.getRandomArray());

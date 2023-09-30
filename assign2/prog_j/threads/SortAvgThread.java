@@ -1,7 +1,11 @@
 package prog_j.threads;
 
 public class SortAvgThread extends Thread {
-
+    // --- This is the same comment in MergeAvgThread 
+    //This is my general incompetence with threads, but I make a member variable for threaded and non threaded seperately
+    //With a new object these values could be reset and the time for execution would still be accurate for each case, 
+    //But I wanted to be more explicit with which arrays were being called where, so I knew exactly what was being called.
+    //I didn't want to accidentally share data and have runtime be skewed somehow, but this is probably overkill.
     double[] unsortedArray;
     double[] unsortedArrayByThread;
     double[] sortedArray;
@@ -54,6 +58,7 @@ public class SortAvgThread extends Thread {
         return this.sortedArrayByThread;
     }
 
+    //average calculation as per instructions
     private double calcAverage(double[] array) {
         double total = 0.0;
         int count = 0;

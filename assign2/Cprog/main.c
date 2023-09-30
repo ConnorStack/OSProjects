@@ -8,21 +8,21 @@ pthread_mutex_t lock;
 
 typedef struct sort_avg_struct
 {
-    double *sorted_array;
-    double average;
+    double *sorted_array; // <----- sorted array
+    double average; // <----- average
     int count;
     int is_threaded;
 } sort_struct;
 
 typedef struct merging_struct
 {
-    double *merge_array;
+    double *merge_array; // <----- merged array
     double *first_half_arr;
     double *second_half_arr;
     int full_length;
     double first_half_avg;
     double second_half_avg;
-    double merged_avg;
+    double merged_avg; // <-----average
     int is_threaded;
 } merge_struct;
 
@@ -50,8 +50,9 @@ int main(int argc, char *argv[])
     // -------------------------------------------------------------
     // -------------------- NON THREADED SECTION -------------------
     // -------------------------------------------------------------
-    // Building the struct for a non-threaded sorting_avg.
-    // Using is_threaded as a boolean integer to circumvent pthread_exit in sorting_avg
+
+    // Building the struct for non-threaded sorting_avg.
+    //  is_threaded is a boolean integer used to circumvent pthread_exit while not threading
     double *nont_first_half = (double *)build_rand_array(half_n);
     double *nont_second_half = (double *)build_rand_array(half_n);
     double *non_threaded_array = (double *)build_rand_array(n);
@@ -59,7 +60,7 @@ int main(int argc, char *argv[])
     sort_struct nont_first_struct = build_sort_struct(nont_first_half, n / 2, is_threaded);
     sort_struct nont_second_struct = build_sort_struct(nont_second_half, n / 2, is_threaded);
 
-    // Clocking and running the non threaded implementation
+    // Clocking and running the non-threaded implementation
     clock_gettime(CLOCK_MONOTONIC, &ts_begin);
     sorting_avg(&nont_first_struct);
     sorting_avg(&nont_second_struct);
