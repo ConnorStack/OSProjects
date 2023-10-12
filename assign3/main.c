@@ -63,11 +63,11 @@ void *file_reading_thread(void *arg)
         perror("could not open file");
         return NULL;
     }
-    char buffer[256];
+    char buffer[200];
     while (fgets(buffer, sizeof(buffer), file) != NULL)
     {
-        char *first_word = strtok(buffer, " \t\n");
-        printf("first word: %s\n", first_word);
+        char *first_word = strtok(buffer, " ");
+        printf("First word: %s\n", first_word);
         // printf("Read: %s", buffer);
     }
     printf("\n");
