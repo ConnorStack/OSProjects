@@ -16,7 +16,9 @@ prog -alg RR -quantum 30 -input input2.txt
 
 example input file content
 
-Following proc, there is a sequence of integer numbers: the first one represents the priority (1: lowest, ..., 5: normal, ..., 10: highest). The second number (an odd number) shows the number of remaining integers representing CPU burst and I/O burst times (ms) in an alternating manner for that process. It is odd number because the last number will be the last CPU burst time after which that process exits.
+Following proc, there is a sequence of integer numbers: 
+the first one represents the priority (1: lowest, ..., 5: normal, ..., 10: highest). 
+The second number (an odd number) shows the number of remaining integers representing CPU burst and I/O burst times (ms) in an alternating manner for that process. It is odd number because the last number will be the last CPU burst time after which that process exits.
 proc 1 7 10 20 10 50 20 40 10
 Following sleep, there will be an integer number representing the time (ms) after which there will be another process.
 sleep 50
@@ -33,6 +35,8 @@ sleep 50
 proc 2 3 20 50 20
 stop
 -----------------------------
+
+One of the threads in your program (e.g., FileRead_thread()) would be responsible for processing this input file as follows. As long as it reads proc, it will create a new process and put it in a ready queue (clearly, since we are just simulating CPU scheduling,  this process is not an actual one, it will be just a simple data structure (similar to PCB) that contains the given priority and the sequence of CPU burst and I/O burst times, and other fields to use in our simulation). When this thread reads sleep x, it will sleep x ms and then try to read new processes from the file, create PCB structure and put into ready queue. Upon reading stop, this thread will quit.
 
 
 The output of your program will be as follows:
