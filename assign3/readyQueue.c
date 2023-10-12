@@ -1,6 +1,20 @@
-#include "readyQ.h"
 
-// PCB *NewPCB(){}
+#include <stdlib.h>
+#include "readyQueue.h"
+
+ready_Queue *new_ready_queue(){
+    ready_Queue *list;
+
+    list = (ready_Queue *)malloc(sizeof(ready_Queue));
+    if(list == NULL){
+        return NULL;
+    }
+
+    list->head = NULL;
+    list->tail = NULL;
+
+    return list;
+}
 
 // ready_Q *NewLinkedList(void){}
 

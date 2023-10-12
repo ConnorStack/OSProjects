@@ -1,6 +1,20 @@
-#include "IOQ.h"
 
-// PCB *NewPCB(){}
+#include <stdlib.h>
+#include "IOQueue.h"
+
+IO_Queue *new_IO_queue(){
+    IO_Queue * list;
+    list = (IO_Queue*)malloc(sizeof(IO_Queue));
+
+    if(list == NULL){
+        return NULL;
+    }
+
+    list->head = NULL;
+    list->tail = NULL;
+    
+    return list;
+}
 
 // IO_Q *NewLinkedList(void){}
 

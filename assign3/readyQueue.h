@@ -1,17 +1,18 @@
-#ifndef _ready_Q
-#define _ready_Q
+#ifndef _READY_Q_H
+#define _READY_Q_H
 
 #include "pcb.h"
 
-typedef struct ready_Q
+typedef struct ready_Queue
 {
     PCB *head;
     PCB *tail;
-} ready_Q;
+
+} ready_Queue;
 
 #endif
 
-// PCB *NewPCB();
+ready_Queue *new_ready_queue();
 
 // ready_Q *NewLinkedList(void);
 

@@ -1,6 +1,7 @@
 {
   "files.associations": {
     "*.ejs": "html",
-    "pcb.h": "c"
+    "pcb.h": "c",
+    "readyqueue.h": "c"
   }
 }

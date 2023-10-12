@@ -1,13 +1,17 @@
-#include "pcb.h"
+#ifndef _IO_QUEUE_H
+#define _IO_QUEUE_H
 
-typedef struct IO_Q
+#include "PCB.h"
+
+typedef struct IO_Queue
 {
     PCB *head;
     PCB *tail;
-} IO_Q;
+
+} IO_Queue;
 
 
-// PCB *NewPCB();
+IO_Queue *new_IO_queue();
 
 // IO_Q *NewLinkedList(void);
 
@@ -24,3 +28,5 @@ typedef struct IO_Q
 // int LinkedListLength(IO_Q *list);
 
 // PCB *GetLinkedListElement(IO_Q *list, int index);
+
+#endif

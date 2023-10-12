@@ -6,16 +6,26 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
-#include "readyQ.h"
-#include "IOQ.h"
+#include <string.h>
+#include "readyQueue.h"
+#include "IOQueue.h"
+
 void *file_reading_thread(void *arg);
 
 int main(int argc, char *argv[])
 {
+    //allocate appropriate thread ID's
     pthread_t tid_file_reader, tid_readyq, tid_ioq;
     int thread_status;
     char *schedule_type = argv[2];
     char *filename = NULL;
+
+    IO_Queue *IO_queue;
+    ready_Queue *ready_queue;
+
+    // IO_queue = new_IO_queue();
+    // ready_queue = new_ready_queue();
+
     //temporary
     filename = argv[1];
     if (argc == 5)
@@ -56,11 +66,11 @@ void *file_reading_thread(void *arg)
     char buffer[256];
     while (fgets(buffer, sizeof(buffer), file) != NULL)
     {
-        // Process the data as needed
-        printf("Read: %s", buffer);
+        char *first_word = strtok(buffer, " \t\n");
+        printf("first word: %s\n", first_word);
+        // printf("Read: %s", buffer);
     }
-
-    // Close the file
+    printf("\n");
     fclose(file);
 
     return NULL;
