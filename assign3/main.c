@@ -10,16 +10,18 @@
 #include "readyQueue.h"
 #include "IOQueue.h"
 
-typedef struct file_reading_args{
+typedef struct file_reading_args
+{
     ready_Queue *ready_queue;
     pthread_mutex_t *ready_queue_mutex;
     char *filename;
 
-}file_reading_args;
+} file_reading_args;
 
-typedef struct cpu_scheduler_args{
-    char * scheduler_alg;
-}cpu_scheduler_args;
+typedef struct cpu_scheduler_args
+{
+    char *scheduler_alg;
+} cpu_scheduler_args;
 
 int file_read_done = 0;
 int cpu_sch_done = 0;
@@ -28,6 +30,9 @@ int cpu_busy = 0;
 int io_busy = 0;
 
 void *file_reading_thread(void *arg);
+
+void set_PCB_burst_values(PCB *newPCB, int remaining_instructions);
+int get_next_token();
 
 int main(int argc, char *argv[])
 {
@@ -89,16 +94,27 @@ void *file_reading_thread(void *arg)
     }
 
     char buffer[200];
+    int currPID = 0;
 
     while (fgets(buffer, sizeof(buffer), file) != NULL)
     {
         char *first_word = strtok(buffer, " \n\t");
-        printf("First word: %s ", first_word);
+        // printf("First word: %s \n", first_word);
 
-        //If the instruction is proc, create a new PCB and add it to the linked_list
+        // If the instruction is proc, create a new PCB and add it to the linked_list
         if (strcmp(first_word, "proc") == 0)
         {
-            printf("proc found\n");
+
+            PCB newPCB;
+            newPCB.PID = currPID;
+
+            //These calls are order sensitive, they invoke strtok, so changing their order changes thier values
+            newPCB.PR = get_next_token();
+            int remaining_instructions = get_next_token();
+            set_PCB_burst_values(&newPCB, remaining_instructions);
+
+            printf("Checking newPCB CPU values %d\n", newPCB.CPUBurst[0]);
+            printf("Checking newPCB IO values %d\n", newPCB.IOBurst[0]);
         }
         else if (strcmp(first_word, "sleep") == 0)
         {
@@ -112,15 +128,61 @@ void *file_reading_thread(void *arg)
         {
             printf("invalid word");
         }
-
     }
+
     printf("\n");
     fclose(file);
 
     return NULL;
 }
 
-void *cpu_scheduler_thread(void *args){
+void set_PCB_burst_values(PCB *newPCB, int remaining_instructions)
+{
 
+    newPCB->CPUBurst = (int *)malloc((remaining_instructions / 2 + 1) * sizeof(int));
+    newPCB->IOBurst = (int *)malloc((remaining_instructions / 2) * sizeof(int));
+
+    if (newPCB->CPUBurst == NULL || newPCB->IOBurst == NULL)
+    {
+        // Handle memory allocation failure
+        // You might want to free any previously allocated memory and return an error code.
+    }
+
+    int cpu_burst = 0;
+    int io_burst = 0;
+    char *instruction = NULL;
+
+    int n = 0;
+    int m = 0;
+
+    for (int i = 0; i < remaining_instructions; i++)
+    {
+        if (i % 2 == 0)
+        {
+            instruction = strtok(NULL, " ");
+            cpu_burst = atoi(instruction);
+            newPCB->CPUBurst[n] = cpu_burst;
+            n++;
+            // printf("CPU burst: %d\n", cpu_burst);
+        }
+        else
+        {
+            instruction = strtok(NULL, " ");
+            io_burst = atoi(instruction);
+            newPCB->IOBurst[m] = io_burst;
+            m++;
+            // printf("IO burst: %d\n", io_burst);
+        }
+    }
+}
+int get_next_token()
+{
+    char *file_token = strtok(NULL, " ");
+    int next_token = atoi(file_token);
+
+    return next_token;
 }
 
+void *cpu_scheduler_thread(void *args)
+{
+}
