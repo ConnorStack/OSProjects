@@ -10,6 +10,17 @@
 #include "readyQueue.h"
 #include "IOQueue.h"
 
+typedef struct file_reading_args{
+    ready_Queue *ready_queue;
+    pthread_mutex_t *ready_queue_mutex;
+    char *filename;
+
+}file_reading_args;
+
+typedef struct cpu_scheduler_args{
+    char * scheduler_alg;
+}cpu_scheduler_args;
+
 int file_read_done = 0;
 int cpu_sch_done = 0;
 int io_sys_done = 0;
@@ -21,28 +32,35 @@ void *file_reading_thread(void *arg);
 int main(int argc, char *argv[])
 {
     // allocate appropriate thread ID's
-    pthread_t tid_file_reader, tid_readyq, tid_ioq;
+    pthread_t tid_file_reader, tid_cpu_scheduler, tid_io_system;
     int thread_status;
-    char *schedule_type = argv[2];
-    char *filename = NULL;
+    pthread_mutex_t ready_queue_mutex;
 
-    ready_Queue *ready_queue;
-    ready_queue = new_ready_queue();
+    pthread_mutex_init(&ready_queue_mutex, NULL);
 
-    IO_Queue *IO_queue;
-    IO_queue = new_IO_queue();
+    file_reading_args file_reading_args;
+    cpu_scheduler_args cpu_scheduler_args;
 
-    // temporary
-    filename = argv[1];
+    ready_Queue *ready_queue = new_ready_queue();
+    IO_Queue *IO_queue = new_IO_queue();
+
+    // temporary, move to appropriate logic gate
+    file_reading_args.filename = argv[1];
+    file_reading_args.ready_queue = ready_queue;
+    file_reading_args.ready_queue_mutex = &ready_queue_mutex;
+
+    cpu_scheduler_args.scheduler_alg = argv[2];
+    //--------------------------------------------
+
     if (argc == 5)
     {
-        filename = argv[4];
+        file_reading_args.filename = argv[4];
 
         printf("5\n");
     }
     else if (argc == 7)
     {
-        filename = argv[6];
+        file_reading_args.filename = argv[6];
 
         printf("7\n");
     }
@@ -51,9 +69,9 @@ int main(int argc, char *argv[])
         // printf("invalid number of arguments");
     }
 
-    // ready_Q readyq;
+    pthread_create(&tid_file_reader, NULL, file_reading_thread, &file_reading_args);
+    // pthread_create($tid_cpu_scheduler, NULL, cpu_scheduler_thread, (void *))
 
-    pthread_create(&tid_file_reader, NULL, file_reading_thread, (void *)filename);
     pthread_join(tid_file_reader, (void **)&thread_status);
 
     return 0;
@@ -61,7 +79,8 @@ int main(int argc, char *argv[])
 
 void *file_reading_thread(void *arg)
 {
-    char *filename = (char *)arg;
+    file_reading_args *args = (file_reading_args *)arg;
+    char *filename = args->filename;
     FILE *file = fopen(filename, "r");
     if (file == NULL)
     {
@@ -76,7 +95,7 @@ void *file_reading_thread(void *arg)
         char *first_word = strtok(buffer, " \n\t");
         printf("First word: %s ", first_word);
 
-
+        //If the instruction is proc, create a new PCB and add it to the linked_list
         if (strcmp(first_word, "proc") == 0)
         {
             printf("proc found\n");
@@ -99,5 +118,9 @@ void *file_reading_thread(void *arg)
     fclose(file);
 
     return NULL;
+}
+
+void *cpu_scheduler_thread(void *args){
+
 }
 
