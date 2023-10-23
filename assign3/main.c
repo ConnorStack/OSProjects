@@ -8,6 +8,8 @@
 #include <pthread.h>
 #include <string.h>
 #include <semaphore.h>
+#include <unistd.h>
+#include <errno.h>
 #include "readyQueue.h"
 #include "IOQueue.h"
 
@@ -31,6 +33,8 @@ pthread_mutex_t ready_queue_mutex;
 pthread_mutex_t io_queue_mutex;
 
 void *file_reading_thread(void *arg);
+void *cpu_scheduler_thread(void *args);
+void *IO_system_thread(void *args);
 
 void set_PCB_burst_values(PCB *newPCB, int remaining_instructions);
 int get_next_token();
@@ -86,18 +90,94 @@ int main(int argc, char *argv[])
     }
 
     pthread_create(&tid_file_reader, NULL, file_reading_thread, filename);
-    // pthread_create($tid_cpu_scheduler, NULL, cpu_scheduler_thread, (void *))
+    pthread_create(&tid_cpu_scheduler, NULL, cpu_scheduler_thread, algorithmType);
+    pthread_create(&tid_io_system, NULL, IO_system_thread, NULL);
 
     pthread_join(tid_file_reader, (void **)&thread_status);
+    pthread_join(tid_cpu_scheduler, NULL);
     // print_PCBs_in_list(ready_queue);
 
     return 0;
 }
 
+void *IO_system_thread(void *args){
+    return NULL;
+}
+
+void *cpu_scheduler_thread(void *args)
+{
+    char *scheduler_alg = (char *)args;
+    struct timespec atimespec;
+    atimespec.tv_sec = 1;
+
+    while (1)
+    {
+        if (ready_queue_is_empty(ready_queue) && !cpu_busy && IO_Q_is_empty(IO_queue) && !io_busy && file_read_done)
+        {
+            break;
+        }
+
+        if (strcmp(scheduler_alg, "FIFO") == 0)
+        {
+            int res = sem_timedwait(&sem_cpu, &atimespec);
+            if (res == -1 && errno == ETIMEDOUT)
+            {
+                continue; 
+            }
+            cpu_busy = 1;
+
+            // sem_wait(&sem_cpu);
+            // pthread_mutex_lock(&ready_queue_mutex);
+            // pthread_mutex_unlock(&ready_queue_mutex);
+
+            PCB *pcb = delist_from_ready_queue(ready_queue);
+            if (pcb != NULL)
+            {
+                printf("cpu scheduler sleeping");
+                usleep(pcb->CPUBurst[pcb->cpuindex] * 1000); // Convert to microseconds
+                pcb->cpuindex++;
+
+                if (pcb->cpuindex >= pcb->numCPUBurst)
+                {
+                    // This is the last CPU burst, terminate the PCB
+                    free(pcb);
+                    cpu_busy = 0;
+                }
+                else
+                {
+                    // Insert PCB into IO_Q
+                    enlist_to_IO_queue(IO_queue, pcb);
+                    io_busy = 0;
+                    cpu_busy = 0;
+                    sem_post(&sem_io);
+                }
+                
+            }
+        }
+        else if (strcmp(scheduler_alg, "SJF") == 0)
+        {
+            // Shortest Job First scheduling algorithm
+        }
+        else if (strcmp(scheduler_alg, "PR") == 0)
+        {
+            // Priority scheduling algorithm
+        }
+        else if (strcmp(scheduler_alg, "RR") == 0)
+        {
+            // Round Robin scheduling algorithm
+        }
+        else
+        {
+            // Handle the case where the algorithm is not recognized
+        }
+    }
+
+    cpu_sch_done = 1;
+    return NULL;
+}
+
 void *file_reading_thread(void *arg)
 {
-    // file_reading_args *args = (file_reading_args *)arg;
-    // char *filename = args->filename;
     char *filename = (char *)arg;
     FILE *file = fopen(filename, "r");
     if (file == NULL)
@@ -129,17 +209,20 @@ void *file_reading_thread(void *arg)
             set_PCB_burst_values(newPCB, remaining_instructions);
 
             pthread_mutex_lock(&ready_queue_mutex);
-            Enlist(ready_queue, newPCB);
+            enlist_to_ready_queue(ready_queue, newPCB);
             pthread_mutex_unlock(&ready_queue_mutex);
             sem_post(&sem_cpu);
         }
         else if (strcmp(first_word, "sleep") == 0)
         {
+            int milliseconds = get_next_token();
+            usleep(milliseconds * 1000);
             printf("sleep found\n");
         }
         else if (strcmp(first_word, "stop") == 0)
         {
             printf("stop found\n");
+            break;
         }
         else
         {
@@ -147,6 +230,7 @@ void *file_reading_thread(void *arg)
         }
     }
 
+    file_read_done = 1;
     printf("\n");
     fclose(file);
 
@@ -200,8 +284,4 @@ int get_next_token()
     int next_token = atoi(file_token);
 
     return next_token;
-}
-
-void *cpu_scheduler_thread(void *args)
-{
 }

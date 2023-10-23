@@ -12,11 +12,11 @@ typedef struct ready_Queue
 } ready_Queue;
 
 ready_Queue *new_ready_queue();
-void Enlist(ready_Queue *list, PCB *element);
-int LinkedListIsEmpty(ready_Queue *list);
+void enlist_to_ready_queue(ready_Queue *list, PCB *element);
+int ready_queue_is_empty(ready_Queue *list);
 
 
-// PCB *Delist(ready_Queue *list);
+PCB *delist_from_ready_queue(ready_Queue *list);
 
 // ready_Q *NewLinkedList(void);
 

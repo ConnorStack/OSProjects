@@ -18,16 +18,29 @@ IO_Queue *new_IO_queue(){
 
 // IO_Q *NewLinkedList(void){}
 
-// void FreeLinkedList(IO_Q *list){}
+// void FreeLinkedList(IO_Queue *list){}
 
-// void Enlist(IO_Q *list, PCB *element){}
+void enlist_to_IO_queue(IO_Queue *list, PCB *element){
+        if (list->head != NULL)
+    {
+        list->tail->next = element;
+        list->tail = element;
+        element->next = NULL;
+    }
+    else
+    {
+        list->head = element;
+        list->tail = element;
+        element->next = NULL;
+    }
+}
 
-// PCB *Delist(IO_Q *list){}
+// PCB *Delist(IO_Queue *list){}
 
-// int LinkedListIsEmpty(IO_Q *list){}
+int IO_Q_is_empty(IO_Queue *list){}
 
-// int LinkedListIsFull(IO_Q *list){}
+// int LinkedListIsFull(IO_Queue *list){}
 
-// int LinkedListLength(IO_Q *list){}
+// int LinkedListLength(IO_Queue *list){}
 
-// PCB *GetLinkedListElement(IO_Q *list, int index){}
+// PCB *GetLinkedListElement(IO_Queue *list, int index){}

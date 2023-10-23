@@ -19,7 +19,7 @@ ready_Queue *new_ready_queue()
     return list;
 }
 
-void Enlist(ready_Queue *list, PCB *element)
+void enlist_to_ready_queue(ready_Queue *list, PCB *element)
 {
     if (list->head != NULL)
     {
@@ -35,9 +35,9 @@ void Enlist(ready_Queue *list, PCB *element)
     }
 }
 
-PCB *Delist(ready_Queue *list)
+PCB *delist_from_ready_queue(ready_Queue *list)
 {
-    if (LinkedListIsEmpty(list))
+    if (ready_queue_is_empty(list))
     {
         printf("\n Error, List is empty\n");
         return NULL;
@@ -56,7 +56,7 @@ PCB *Delist(ready_Queue *list)
     return removedElement;
 }
 
-int LinkedListIsEmpty(ready_Queue *list)
+int ready_queue_is_empty(ready_Queue *list)
 {
     if (list->head == NULL)
     {
@@ -68,7 +68,7 @@ int LinkedListIsEmpty(ready_Queue *list)
     }
 }
 
-int LinkedListLength(ready_Queue *list)
+int ready_queue_length(ready_Queue *list)
 {
     int length = 0;
     PCB *current = list->head;
