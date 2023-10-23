@@ -7,11 +7,13 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <string.h>
+#include <semaphore.h>
 #include "readyQueue.h"
 #include "IOQueue.h"
 
 typedef struct file_reading_args
 {
+    //making this a struct may be a mistake after all
     ready_Queue *ready_queue;
     pthread_mutex_t *ready_queue_mutex;
     char *filename;
@@ -20,6 +22,7 @@ typedef struct file_reading_args
 
 typedef struct cpu_scheduler_args
 {
+    //this may be a mistake to make a struct
     char *scheduler_alg;
 } cpu_scheduler_args;
 
@@ -28,6 +31,13 @@ int cpu_sch_done = 0;
 int io_sys_done = 0;
 int cpu_busy = 0;
 int io_busy = 0;
+sem_t sem_cpu;
+sem_t sem_io;
+
+ready_Queue *ready_queue
+IO_Queue *IO_queue;
+pthread_mutex_t ready_queue_mutex;
+pthread_mutex_t io_queue_mutex;
 
 void *file_reading_thread(void *arg);
 
@@ -46,8 +56,13 @@ int main(int argc, char *argv[])
     file_reading_args file_reading_args;
     cpu_scheduler_args cpu_scheduler_args;
 
-    ready_Queue *ready_queue = new_ready_queue();
-    IO_Queue *IO_queue = new_IO_queue();
+    ready_queue = new_ready_queue();
+    pthread_mutex_init(&ready_queue_mutex, NULL);
+
+    IO_queue = new_IO_queue();
+    pthread_mutex_init(&io_queue_mutex, NULL);
+    // ready_Queue *ready_queue = new_ready_queue();
+    // IO_Queue *IO_queue = new_IO_queue();
 
     // temporary, move to appropriate logic gate
     file_reading_args.filename = argv[1];
@@ -57,12 +72,13 @@ int main(int argc, char *argv[])
     cpu_scheduler_args.scheduler_alg = argv[2];
     //--------------------------------------------
 
+    //if FIFO, SJF, PRiority
     if (argc == 5)
     {
         file_reading_args.filename = argv[4];
 
         printf("5\n");
-    }
+    } //RR
     else if (argc == 7)
     {
         file_reading_args.filename = argv[6];
@@ -99,7 +115,6 @@ void *file_reading_thread(void *arg)
     while (fgets(buffer, sizeof(buffer), file) != NULL)
     {
         char *first_word = strtok(buffer, " \n\t");
-        // printf("First word: %s \n", first_word);
 
         // If the instruction is proc, create a new PCB and add it to the linked_list
         if (strcmp(first_word, "proc") == 0)
@@ -115,6 +130,8 @@ void *file_reading_thread(void *arg)
 
             printf("Checking newPCB CPU values %d\n", newPCB.CPUBurst[0]);
             printf("Checking newPCB IO values %d\n", newPCB.IOBurst[0]);
+            //probably where we want to lock and add node to linked list
+
         }
         else if (strcmp(first_word, "sleep") == 0)
         {
@@ -144,8 +161,7 @@ void set_PCB_burst_values(PCB *newPCB, int remaining_instructions)
 
     if (newPCB->CPUBurst == NULL || newPCB->IOBurst == NULL)
     {
-        // Handle memory allocation failure
-        // You might want to free any previously allocated memory and return an error code.
+        // memory allocation failure
     }
 
     int cpu_burst = 0;
@@ -175,6 +191,7 @@ void set_PCB_burst_values(PCB *newPCB, int remaining_instructions)
         }
     }
 }
+
 int get_next_token()
 {
     char *file_token = strtok(NULL, " ");
