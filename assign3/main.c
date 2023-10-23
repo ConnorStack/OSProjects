@@ -11,20 +11,11 @@
 #include "readyQueue.h"
 #include "IOQueue.h"
 
-// typedef struct file_reading_args
+// typedef struct cpu_scheduler_args
 // {
-//     // making this a struct may be a mistake after all
-//     ready_Queue *ready_queue;
-//     // pthread_mutex_t *ready_queue_mutex;
-//     char *filename;
-
-// } file_reading_args;
-
-typedef struct cpu_scheduler_args
-{
-    // this may be a mistake to make a struct
-    char *scheduler_alg;
-} cpu_scheduler_args;
+//     // this may be a mistake to make a struct
+//     char *scheduler_alg;
+// } cpu_scheduler_args;
 
 int file_read_done = 0;
 int cpu_sch_done = 0;
@@ -51,13 +42,8 @@ int main(int argc, char *argv[])
     int thread_status;
     pthread_mutex_t ready_queue_mutex;
 
-    // pthread_mutex_init(&ready_queue_mutex, NULL);
-
     sem_init(&sem_cpu, 0, 0);
     sem_init(&sem_io, 0, 0);
-
-    // file_reading_args file_reading_args;
-    cpu_scheduler_args cpu_scheduler_args;
 
     ready_queue = new_ready_queue();
     pthread_mutex_init(&ready_queue_mutex, NULL);
@@ -65,41 +51,45 @@ int main(int argc, char *argv[])
     IO_queue = new_IO_queue();
     pthread_mutex_init(&io_queue_mutex, NULL);
 
-    // temporary, move to appropriate logic gate
-    // file_reading_args.filename = argv[1];
-    // file_reading_args.ready_queue = ready_queue;
-    // file_reading_args.ready_queue_mutex = &ready_queue_mutex;
-
-    cpu_scheduler_args.scheduler_alg = argv[2];
+    char *algorithmType;
     //--------------------------------------------
 
-    char * filename;
+    char *filename;
+    char *quantum;
     // if FIFO, SJF, PRiority
     if (argc == 5)
     {
-        // file_reading_args.filename = argv[4];
         filename = argv[4];
+        algorithmType = argv[2];
+        printf("Executing: %s\n", argv[0]);
+        printf("%s type: %s\n", argv[1], algorithmType);
+        printf("%s %s\n", argv[3], filename);
 
-        printf("5\n");
+        // printf("Executing: %s \n%s type: %s \n%s %s\n", argv[0], argv[1], algorithmType, argv[3], filename);
     } // RR
     else if (argc == 7)
     {
         // file_reading_args.filename = argv[6];
+        algorithmType = argv[2];
+        quantum = argv[4];
         filename = argv[6];
 
-        printf("7\n");
+        printf("Executing: %s\n", argv[0]);
+        printf("%s type: %s\n", argv[1], algorithmType);
+        printf("%s %s\n", argv[3], quantum);
+        printf("%s %s\n", argv[5], filename);
+        // printf("Executing: %s \n %s type: %s \n %s %s \n %s", argv[0], argv[1], algorithmType, argv[3], quantum, filename);
     }
     else
     {
         // printf("invalid number of arguments");
     }
 
-
     pthread_create(&tid_file_reader, NULL, file_reading_thread, filename);
     // pthread_create($tid_cpu_scheduler, NULL, cpu_scheduler_thread, (void *))
 
     pthread_join(tid_file_reader, (void **)&thread_status);
-    print_PCBs_in_list(ready_queue);
+    // print_PCBs_in_list(ready_queue);
 
     return 0;
 }
@@ -157,7 +147,6 @@ void *file_reading_thread(void *arg)
         }
     }
 
-    
     printf("\n");
     fclose(file);
 
