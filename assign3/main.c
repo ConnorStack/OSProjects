@@ -111,6 +111,7 @@ void *file_reading_thread(void *arg)
 
     char buffer[200];
     int currPID = 0;
+    //when should currPID increment? after each proc, or each line in the file?
 
     while (fgets(buffer, sizeof(buffer), file) != NULL)
     {
@@ -120,17 +121,22 @@ void *file_reading_thread(void *arg)
         if (strcmp(first_word, "proc") == 0)
         {
 
-            PCB newPCB;
-            newPCB.PID = currPID;
+            PCB *newPCB;
+            newPCB = malloc(sizeof(PCB));
+
+            newPCB->PID = currPID;
 
             //These calls are order sensitive, they invoke strtok, so changing their order changes thier values
-            newPCB.PR = get_next_token();
+            newPCB->PR = get_next_token();
             int remaining_instructions = get_next_token();
-            set_PCB_burst_values(&newPCB, remaining_instructions);
+            set_PCB_burst_values(newPCB, remaining_instructions);
 
-            printf("Checking newPCB CPU values %d\n", newPCB.CPUBurst[0]);
-            printf("Checking newPCB IO values %d\n", newPCB.IOBurst[0]);
+            printf("Checking newPCB CPU values %d\n", newPCB->CPUBurst[0]);
+            printf("Checking newPCB IO values %d\n", newPCB->IOBurst[0]);
 
+            pthread_mutex_lock(&ready_queue_mutex);
+            Enlist(ready_queue, newPCB);
+            pthread_mutex_unlock(&ready_queue_mutex);
 
             //probably where we want to lock and add node to linked list
 
@@ -149,6 +155,7 @@ void *file_reading_thread(void *arg)
         }
     }
 
+    print_PCBs_in_list(ready_queue);
     printf("\n");
     fclose(file);
 
@@ -163,7 +170,7 @@ void set_PCB_burst_values(PCB *newPCB, int remaining_instructions)
 
     if (newPCB->CPUBurst == NULL || newPCB->IOBurst == NULL)
     {
-        // memory allocation failure
+        printf("MEMORY FAILURE");
     }
 
     int cpu_burst = 0;
@@ -191,6 +198,8 @@ void set_PCB_burst_values(PCB *newPCB, int remaining_instructions)
             m++;
             // printf("IO burst: %d\n", io_burst);
         }
+        newPCB->numCPUBurst = n;
+        newPCB->numIOBurst = m;
     }
 }
 
