@@ -11,18 +11,18 @@
 #include "readyQueue.h"
 #include "IOQueue.h"
 
-typedef struct file_reading_args
-{
-    //making this a struct may be a mistake after all
-    ready_Queue *ready_queue;
-    pthread_mutex_t *ready_queue_mutex;
-    char *filename;
+// typedef struct file_reading_args
+// {
+//     // making this a struct may be a mistake after all
+//     ready_Queue *ready_queue;
+//     // pthread_mutex_t *ready_queue_mutex;
+//     char *filename;
 
-} file_reading_args;
+// } file_reading_args;
 
 typedef struct cpu_scheduler_args
 {
-    //this may be a mistake to make a struct
+    // this may be a mistake to make a struct
     char *scheduler_alg;
 } cpu_scheduler_args;
 
@@ -51,9 +51,12 @@ int main(int argc, char *argv[])
     int thread_status;
     pthread_mutex_t ready_queue_mutex;
 
-    pthread_mutex_init(&ready_queue_mutex, NULL);
+    // pthread_mutex_init(&ready_queue_mutex, NULL);
 
-    file_reading_args file_reading_args;
+    sem_init(&sem_cpu, 0, 0);
+    sem_init(&sem_io, 0, 0);
+
+    // file_reading_args file_reading_args;
     cpu_scheduler_args cpu_scheduler_args;
 
     ready_queue = new_ready_queue();
@@ -61,27 +64,28 @@ int main(int argc, char *argv[])
 
     IO_queue = new_IO_queue();
     pthread_mutex_init(&io_queue_mutex, NULL);
-    // ready_Queue *ready_queue = new_ready_queue();
-    // IO_Queue *IO_queue = new_IO_queue();
 
     // temporary, move to appropriate logic gate
-    file_reading_args.filename = argv[1];
-    file_reading_args.ready_queue = ready_queue;
-    file_reading_args.ready_queue_mutex = &ready_queue_mutex;
+    // file_reading_args.filename = argv[1];
+    // file_reading_args.ready_queue = ready_queue;
+    // file_reading_args.ready_queue_mutex = &ready_queue_mutex;
 
     cpu_scheduler_args.scheduler_alg = argv[2];
     //--------------------------------------------
 
-    //if FIFO, SJF, PRiority
+    char * filename;
+    // if FIFO, SJF, PRiority
     if (argc == 5)
     {
-        file_reading_args.filename = argv[4];
+        // file_reading_args.filename = argv[4];
+        filename = argv[4];
 
         printf("5\n");
-    } //RR
+    } // RR
     else if (argc == 7)
     {
-        file_reading_args.filename = argv[6];
+        // file_reading_args.filename = argv[6];
+        filename = argv[6];
 
         printf("7\n");
     }
@@ -90,18 +94,21 @@ int main(int argc, char *argv[])
         // printf("invalid number of arguments");
     }
 
-    pthread_create(&tid_file_reader, NULL, file_reading_thread, &file_reading_args);
+
+    pthread_create(&tid_file_reader, NULL, file_reading_thread, filename);
     // pthread_create($tid_cpu_scheduler, NULL, cpu_scheduler_thread, (void *))
 
     pthread_join(tid_file_reader, (void **)&thread_status);
+    print_PCBs_in_list(ready_queue);
 
     return 0;
 }
 
 void *file_reading_thread(void *arg)
 {
-    file_reading_args *args = (file_reading_args *)arg;
-    char *filename = args->filename;
+    // file_reading_args *args = (file_reading_args *)arg;
+    // char *filename = args->filename;
+    char *filename = (char *)arg;
     FILE *file = fopen(filename, "r");
     if (file == NULL)
     {
@@ -111,7 +118,7 @@ void *file_reading_thread(void *arg)
 
     char buffer[200];
     int currPID = 0;
-    //when should currPID increment? after each proc, or each line in the file?
+    // when should currPID increment? after each proc, or each line in the file?
 
     while (fgets(buffer, sizeof(buffer), file) != NULL)
     {
@@ -126,20 +133,15 @@ void *file_reading_thread(void *arg)
 
             newPCB->PID = currPID;
 
-            //These calls are order sensitive, they invoke strtok, so changing their order changes thier values
+            // These calls are order sensitive, they invoke strtok, so changing their order changes thier values
             newPCB->PR = get_next_token();
             int remaining_instructions = get_next_token();
             set_PCB_burst_values(newPCB, remaining_instructions);
 
-            printf("Checking newPCB CPU values %d\n", newPCB->CPUBurst[0]);
-            printf("Checking newPCB IO values %d\n", newPCB->IOBurst[0]);
-
             pthread_mutex_lock(&ready_queue_mutex);
             Enlist(ready_queue, newPCB);
             pthread_mutex_unlock(&ready_queue_mutex);
-
-            //probably where we want to lock and add node to linked list
-
+            sem_post(&sem_cpu);
         }
         else if (strcmp(first_word, "sleep") == 0)
         {
@@ -155,7 +157,7 @@ void *file_reading_thread(void *arg)
         }
     }
 
-    print_PCBs_in_list(ready_queue);
+    
     printf("\n");
     fclose(file);
 

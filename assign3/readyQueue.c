@@ -117,7 +117,7 @@ void print_PCB(const PCB *pcb) {
 
 void print_PCBs_in_list(const ready_Queue *list) {
     PCB *current = list->head;
-
+    printf("attempting print ...");
     while (current != NULL) {
         // Call the print_PCB function to print the current PCB
         print_PCB(current);
