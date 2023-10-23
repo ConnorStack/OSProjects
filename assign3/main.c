@@ -34,7 +34,7 @@ int io_busy = 0;
 sem_t sem_cpu;
 sem_t sem_io;
 
-ready_Queue *ready_queue
+ready_Queue *ready_queue;
 IO_Queue *IO_queue;
 pthread_mutex_t ready_queue_mutex;
 pthread_mutex_t io_queue_mutex;
@@ -130,6 +130,8 @@ void *file_reading_thread(void *arg)
 
             printf("Checking newPCB CPU values %d\n", newPCB.CPUBurst[0]);
             printf("Checking newPCB IO values %d\n", newPCB.IOBurst[0]);
+
+
             //probably where we want to lock and add node to linked list
 
         }
