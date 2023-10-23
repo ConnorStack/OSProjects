@@ -19,7 +19,7 @@ IO_Queue *new_IO_queue();
 
 void enlist_to_IO_queue(IO_Queue *list, PCB *element);
 
-// PCB *Delist(IO_Q *list);
+PCB *delist_from_IO_queue(IO_Queue *list);
 
 int IO_Q_is_empty(IO_Queue *list);
 

@@ -13,12 +13,6 @@
 #include "readyQueue.h"
 #include "IOQueue.h"
 
-// typedef struct cpu_scheduler_args
-// {
-//     // this may be a mistake to make a struct
-//     char *scheduler_alg;
-// } cpu_scheduler_args;
-
 int file_read_done = 0;
 int cpu_sch_done = 0;
 int io_sys_done = 0;
@@ -88,6 +82,7 @@ int main(int argc, char *argv[])
     {
         // printf("invalid number of arguments");
     }
+    printf("\n\n");
 
     pthread_create(&tid_file_reader, NULL, file_reading_thread, filename);
     pthread_create(&tid_cpu_scheduler, NULL, cpu_scheduler_thread, algorithmType);
@@ -95,85 +90,11 @@ int main(int argc, char *argv[])
 
     pthread_join(tid_file_reader, (void **)&thread_status);
     pthread_join(tid_cpu_scheduler, NULL);
+    pthread_join(tid_io_system, NULL);
+
     // print_PCBs_in_list(ready_queue);
 
     return 0;
-}
-
-void *IO_system_thread(void *args){
-    return NULL;
-}
-
-void *cpu_scheduler_thread(void *args)
-{
-    char *scheduler_alg = (char *)args;
-    struct timespec atimespec;
-    atimespec.tv_sec = 1;
-
-    while (1)
-    {
-        if (ready_queue_is_empty(ready_queue) && !cpu_busy && IO_Q_is_empty(IO_queue) && !io_busy && file_read_done)
-        {
-            break;
-        }
-
-        if (strcmp(scheduler_alg, "FIFO") == 0)
-        {
-            int res = sem_timedwait(&sem_cpu, &atimespec);
-            if (res == -1 && errno == ETIMEDOUT)
-            {
-                continue; 
-            }
-            cpu_busy = 1;
-
-            // sem_wait(&sem_cpu);
-            // pthread_mutex_lock(&ready_queue_mutex);
-            // pthread_mutex_unlock(&ready_queue_mutex);
-
-            PCB *pcb = delist_from_ready_queue(ready_queue);
-            if (pcb != NULL)
-            {
-                printf("cpu scheduler sleeping");
-                usleep(pcb->CPUBurst[pcb->cpuindex] * 1000); // Convert to microseconds
-                pcb->cpuindex++;
-
-                if (pcb->cpuindex >= pcb->numCPUBurst)
-                {
-                    // This is the last CPU burst, terminate the PCB
-                    free(pcb);
-                    cpu_busy = 0;
-                }
-                else
-                {
-                    // Insert PCB into IO_Q
-                    enlist_to_IO_queue(IO_queue, pcb);
-                    io_busy = 0;
-                    cpu_busy = 0;
-                    sem_post(&sem_io);
-                }
-                
-            }
-        }
-        else if (strcmp(scheduler_alg, "SJF") == 0)
-        {
-            // Shortest Job First scheduling algorithm
-        }
-        else if (strcmp(scheduler_alg, "PR") == 0)
-        {
-            // Priority scheduling algorithm
-        }
-        else if (strcmp(scheduler_alg, "RR") == 0)
-        {
-            // Round Robin scheduling algorithm
-        }
-        else
-        {
-            // Handle the case where the algorithm is not recognized
-        }
-    }
-
-    cpu_sch_done = 1;
-    return NULL;
 }
 
 void *file_reading_thread(void *arg)
@@ -200,7 +121,7 @@ void *file_reading_thread(void *arg)
 
             PCB *newPCB;
             newPCB = malloc(sizeof(PCB));
-
+            currPID++;
             newPCB->PID = currPID;
 
             // These calls are order sensitive, they invoke strtok, so changing their order changes thier values
@@ -234,6 +155,121 @@ void *file_reading_thread(void *arg)
     printf("\n");
     fclose(file);
 
+    return NULL;
+}
+
+void *cpu_scheduler_thread(void *args)
+{
+    char *scheduler_alg = (char *)args;
+    struct timespec atimespec;
+    atimespec.tv_sec = 1;
+
+    while (1)
+    {
+        if (ready_queue_is_empty(ready_queue) && !cpu_busy && IO_Q_is_empty(IO_queue) && !io_busy && file_read_done)
+        {
+            break;
+        }
+
+        if (strcmp(scheduler_alg, "FIFO") == 0)
+        {
+            int res = sem_timedwait(&sem_cpu, &atimespec);
+            if (res == -1 && errno == ETIMEDOUT)
+            {
+                continue;
+            }
+            cpu_busy = 1;
+
+
+            pthread_mutex_lock(&ready_queue_mutex);
+            PCB *pcb = delist_from_ready_queue(ready_queue);
+            pthread_mutex_unlock(&ready_queue_mutex);
+
+            if (pcb != NULL)
+            {
+                print_PCB(pcb);
+                printf("\n");
+                printf("cpu scheduler sleeping\n");
+                usleep(pcb->CPUBurst[pcb->cpuindex] * 1000); // Convert to microseconds
+                pcb->cpuindex++;
+                printf("cpu index %d\n", pcb->cpuindex);
+                printf("num cpu burst %d\n", pcb->numCPUBurst);
+                if (pcb->cpuindex >= pcb->numCPUBurst)
+                {
+                    // This is the last CPU burst, terminate the PCB
+                    free(pcb);
+                    cpu_busy = 0;
+                }
+                else
+                {
+                    // Insert PCB into IO_Q
+                    enlist_to_IO_queue(IO_queue, pcb);
+                    io_busy = 0;
+                    cpu_busy = 0;
+                    sem_post(&sem_io);
+                }
+            }
+        }
+        else if (strcmp(scheduler_alg, "SJF") == 0)
+        {
+            // Shortest Job First scheduling algorithm
+        }
+        else if (strcmp(scheduler_alg, "PR") == 0)
+        {
+            // Priority scheduling algorithm
+        }
+        else if (strcmp(scheduler_alg, "RR") == 0)
+        {
+            // Round Robin scheduling algorithm
+        }
+        else
+        {
+            // Handle the case where the algorithm is not recognized
+        }
+    }
+
+    cpu_sch_done = 1;
+    return NULL;
+}
+
+void *IO_system_thread(void *args)
+{
+    struct timespec atimespec;
+    atimespec.tv_sec = 1;
+    while (1)
+    {
+        // Check conditions for breaking the loop
+        if (ready_queue_is_empty(ready_queue) && !cpu_busy && IO_Q_is_empty(IO_queue) && file_read_done)
+        {
+            break;
+        }
+
+        // Wait for a PCB to be available in IO_Q
+        int res = sem_timedwait(&sem_io, &atimespec /* say 1 sec */);
+        if (res == -1 && errno == ETIMEDOUT)
+        {
+            continue; // Timed out, check conditions again
+        }
+
+        io_busy = 1;
+
+        // Get (remove) the first PCB from IO_Q
+        PCB *pcb = delist_from_IO_queue(IO_queue);
+
+        // Simulate I/O by sleeping
+        usleep(pcb->IOBurst[pcb->ioindex] * 1000); // Convert to microseconds
+
+        pcb->ioindex++;
+
+        // Insert the PCB into Ready_Q
+        pthread_mutex_lock(&ready_queue_mutex);
+        enlist_to_ready_queue(ready_queue, pcb);
+        pthread_mutex_unlock(&ready_queue_mutex);
+        sem_post(&sem_cpu);
+
+        io_busy = 0;
+        io_sys_done = 1;
+    }
     return NULL;
 }
 
