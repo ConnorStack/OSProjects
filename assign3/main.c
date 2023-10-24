@@ -10,6 +10,7 @@
 #include <semaphore.h>
 #include <unistd.h>
 #include <errno.h>
+#include <time.h>
 #include "readyQueue.h"
 #include "IOQueue.h"
 
@@ -121,6 +122,10 @@ void *file_reading_thread(void *arg)
 
             PCB *newPCB;
             newPCB = malloc(sizeof(PCB));
+
+            struct timespec ts_start;
+            clock_gettime(CLOCK_MONOTONIC, &newPCB->ts_begin);
+
             currPID++;
             newPCB->PID = currPID;
 
@@ -143,7 +148,7 @@ void *file_reading_thread(void *arg)
         else if (strcmp(first_word, "stop") == 0)
         {
             printf("stop found\n");
-            break;
+            // break;
         }
         else
         {
@@ -180,7 +185,6 @@ void *cpu_scheduler_thread(void *args)
             }
             cpu_busy = 1;
 
-
             pthread_mutex_lock(&ready_queue_mutex);
             PCB *pcb = delist_from_ready_queue(ready_queue);
             pthread_mutex_unlock(&ready_queue_mutex);
@@ -196,6 +200,10 @@ void *cpu_scheduler_thread(void *args)
                 printf("num cpu burst %d\n", pcb->numCPUBurst);
                 if (pcb->cpuindex >= pcb->numCPUBurst)
                 {
+                    struct timespec ts_end;
+                    clock_gettime(CLOCK_MONOTONIC, &pcb->ts_end);
+                    double elapsed = (pcb->ts_end.tv_sec - pcb->ts_begin.tv_sec) + (pcb->ts_end.tv_nsec - pcb->ts_begin.tv_nsec) / 1000000000.0;
+                    printf("Turnaround time for PID %d: %f ms\n", pcb->PID, elapsed * 1000);
                     // This is the last CPU burst, terminate the PCB
                     free(pcb);
                     cpu_busy = 0;
@@ -205,7 +213,7 @@ void *cpu_scheduler_thread(void *args)
                     // Insert PCB into IO_Q
                     pthread_mutex_lock(&io_queue_mutex);
                     enlist_to_IO_queue(IO_queue, pcb);
-                    pthread_mutex_unlock(&ready_queue_mutex);
+                    pthread_mutex_unlock(&io_queue_mutex);
                     io_busy = 0;
                     cpu_busy = 0;
                     sem_post(&sem_io);
@@ -303,7 +311,6 @@ void set_PCB_burst_values(PCB *newPCB, int remaining_instructions)
             cpu_burst = atoi(instruction);
             newPCB->CPUBurst[n] = cpu_burst;
             n++;
-            // printf("CPU burst: %d\n", cpu_burst);
         }
         else
         {
@@ -311,7 +318,6 @@ void set_PCB_burst_values(PCB *newPCB, int remaining_instructions)
             io_burst = atoi(instruction);
             newPCB->IOBurst[m] = io_burst;
             m++;
-            // printf("IO burst: %d\n", io_burst);
         }
         newPCB->numCPUBurst = n;
         newPCB->numIOBurst = m;
