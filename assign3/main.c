@@ -203,7 +203,9 @@ void *cpu_scheduler_thread(void *args)
                 else
                 {
                     // Insert PCB into IO_Q
+                    pthread_mutex_lock(&io_queue_mutex);
                     enlist_to_IO_queue(IO_queue, pcb);
+                    pthread_mutex_unlock(&ready_queue_mutex);
                     io_busy = 0;
                     cpu_busy = 0;
                     sem_post(&sem_io);
@@ -254,7 +256,9 @@ void *IO_system_thread(void *args)
         io_busy = 1;
 
         // Get (remove) the first PCB from IO_Q
+        pthread_mutex_lock(&ready_queue_mutex);
         PCB *pcb = delist_from_IO_queue(IO_queue);
+        pthread_mutex_unlock(&ready_queue_mutex);
 
         // Simulate I/O by sleeping
         usleep(pcb->IOBurst[pcb->ioindex] * 1000); // Convert to microseconds
