@@ -10,7 +10,7 @@ typedef struct PCB {
     int cpuindex, ioindex;
     struct timespec ts_begin, ts_end;
     struct PCB *prev, *next;
-    char* scheduling_algorithm; //this may not be necessary
+    // char* scheduling_algorithm; //this may not be necessary
     // more fields for performance measures
     // use the system time to determine how much waited, etc.
 } PCB;

@@ -56,6 +56,63 @@ PCB *delist_from_ready_queue(ready_Queue *list)
     return removedElement;
 }
 
+PCB *get_highest_priority_pcb(ready_Queue *list)
+{
+    // printf("getting highest priority pcb\n");
+    if (list->head == NULL) {
+        return NULL; 
+    }
+
+    PCB *current = list->head;
+    PCB *highest_pr_pcb = current;
+
+    while (current != NULL)
+    {
+        if (current->PR < highest_pr_pcb->PR)
+        {
+            highest_pr_pcb = current;
+        }
+        current = current->next;
+    }
+
+    // print_PCB(highest_pr_pcb);
+    return highest_pr_pcb;
+}
+
+PCB *delist_specific_pcb(ready_Queue *list, PCB *pcb)
+{
+    if (pcb == NULL)
+    {
+        return NULL; // Invalid PCB to remove
+    }
+
+    // PCB *current = list->head;
+    // PCB *prev = NULL;
+
+    if (pcb == NULL)
+    {
+        return NULL; // Invalid PCB to remove
+    }
+
+    if (list->head == pcb) {
+        list->head = pcb->next;
+    }
+    if (list->tail == pcb) {
+        list->tail = pcb->prev;
+    }
+
+    if (pcb->prev) {
+        pcb->prev->next = pcb->next;
+    }
+    if (pcb->next) {
+        pcb->next->prev = pcb->prev;
+    }
+
+    pcb->next = pcb->prev = NULL;
+    return pcb;
+}
+
+
 int ready_queue_is_empty(ready_Queue *list)
 {
     if (list->head == NULL)
@@ -90,35 +147,44 @@ int ready_queue_length(ready_Queue *list)
 
 // PCB *GetLinkedListElement(ready_Queue *list, int index){}
 
-void print_PCB(const PCB *pcb) {
-    if (pcb != NULL) {
+void print_PCB(const PCB *pcb)
+{
+    printf("Printing pcb\n");
+    if (pcb != NULL)
+    {
         printf("PID: %d\n", pcb->PID);
         printf("PR: %d\n", pcb->PR);
         printf("numCPUBurst: %d\n", pcb->numCPUBurst);
         printf("numIOBurst: %d\n", pcb->numIOBurst);
 
         printf("CPUBurst: ");
-        for (int i = 0; i < pcb->numCPUBurst; i++) {
+        for (int i = 0; i < pcb->numCPUBurst; i++)
+        {
             printf("%d ", pcb->CPUBurst[i]);
         }
         printf("\n");
 
         printf("IOBurst: ");
-        for (int i = 0; i < pcb->numIOBurst; i++) {
+        for (int i = 0; i < pcb->numIOBurst; i++)
+        {
             printf("%d ", pcb->IOBurst[i]);
         }
         printf("\n");
 
         // Print other fields as needed
-    } else {
+    }
+    else
+    {
         printf("PCB is NULL\n");
     }
 }
 
-void print_PCBs_in_list(const ready_Queue *list) {
+void print_PCBs_in_list(const ready_Queue *list)
+{
     PCB *current = list->head;
-    printf("attempting print ...");
-    while (current != NULL) {
+    printf("attempting print ...\n");
+    while (current != NULL)
+    {
         // Call the print_PCB function to print the current PCB
         print_PCB(current);
 

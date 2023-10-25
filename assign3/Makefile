@@ -5,6 +5,9 @@ OBJS = $(SRCS:.c=.o)
 # Define the executable name
 EXECUTABLE = proc
 
+CC = gcc
+CFLAGS = -g -Wall  # Add the -g flag for debugging information
+
 # Build the executable
 $(EXECUTABLE): $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) -o $(EXECUTABLE)
