@@ -42,6 +42,7 @@ PCB* findHighestPRPCB(ready_Queue* queue);
 // PCB *GetLinkedListElement(ready_Queue *list, int index);
 
 void print_PCB_rq(const PCB *pcb);
+
 void print_rq_PCBs_in_list(const ready_Queue *list);
 
 #endif
