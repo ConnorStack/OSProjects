@@ -1,0 +1,6 @@
+./proc -alg PR -input input.txt
+
+run gnu debugger
+gdb ./my_program
+
+run -alg PR -input input.txt

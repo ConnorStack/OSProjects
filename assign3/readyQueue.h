@@ -21,6 +21,8 @@ PCB *delist_from_ready_queue(ready_Queue *list);
 PCB *get_highest_priority_pcb(ready_Queue *list);
 PCB *delist_specific_pcb(ready_Queue *list, PCB *pcb);
 
+PCB *findAndRemoveHighestPriority(ready_Queue *ready_queue);
+
 // ready_Q *NewLinkedList(void);
 
 // void FreeLinkedList(ready_Queue *list);

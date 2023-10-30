@@ -21,14 +21,17 @@ ready_Queue *new_ready_queue()
 
 void enlist_to_ready_queue(ready_Queue *list, PCB *element)
 {
+    // printf("Adding element to the ready queue\n");
     if (list->head != NULL)
     {
+        printf("Adding element to ready queue. Elements exists already\n");
         list->tail->next = element;
         list->tail = element;
         element->next = NULL;
     }
     else
     {
+        printf("Adding element to ready queue. Head is null\n");
         list->head = element;
         list->tail = element;
         element->next = NULL;
@@ -83,15 +86,7 @@ PCB *delist_specific_pcb(ready_Queue *list, PCB *pcb)
 {
     if (pcb == NULL)
     {
-        return NULL; // Invalid PCB to remove
-    }
-
-    // PCB *current = list->head;
-    // PCB *prev = NULL;
-
-    if (pcb == NULL)
-    {
-        return NULL; // Invalid PCB to remove
+        return NULL; 
     }
 
     if (list->head == pcb) {
@@ -112,6 +107,74 @@ PCB *delist_specific_pcb(ready_Queue *list, PCB *pcb)
     return pcb;
 }
 
+// void delistByPR(PCB **head, int targetPR) {
+//     // Pointer to traverse the linked list
+//     PCB *current = *head;
+//     PCB *prev = NULL;
+
+//     // Traverse the list to find the node with the target PR value
+//     while (current != NULL && current->PR != targetPR) {
+//         prev = current;
+//         current = current->next;
+//     }
+
+//     // If the node with the target PR is found
+//     if (current != NULL) {
+//         // Update the pointers to remove the node
+//         if (prev == NULL) {
+//             // If the target node is the head of the list
+//             *head = current->next;
+//         } else {
+//             prev->next = current->next;
+//         }
+
+//         // Free the memory of the removed node
+//         free(current);
+//     } else {
+//         // Node with the target PR not found
+//         printf("Node with PR %d not found\n", targetPR);
+//     }
+// }
+
+// PCB *findHighestPriority(PCB *head) {
+//     PCB *current = head;
+//     PCB *highestPriorityPCB = NULL;
+
+//     while (current != NULL) {
+//         if (highestPriorityPCB == NULL || current->PR > highestPriorityPCB->PR) {
+//             highestPriorityPCB = current;
+//         }
+//         current = current->next;
+//     }
+
+//     return highestPriorityPCB;
+// }
+PCB *findAndRemoveHighestPriority(ready_Queue *ready_queue) {
+    PCB **head = &(ready_queue->head);
+    PCB *current = *head;
+    PCB *prev = NULL;
+    PCB *highestPriorityPCB = NULL;
+    PCB *prevHighestPriorityPCB = NULL;
+
+    while (current != NULL) {
+        if (highestPriorityPCB == NULL || current->PR > highestPriorityPCB->PR) {
+            prevHighestPriorityPCB = prev;
+            highestPriorityPCB = current;
+        }
+        prev = current;
+        current = current->next;
+    }
+
+    if (highestPriorityPCB != NULL) {
+        if (prevHighestPriorityPCB == NULL) {
+            *head = highestPriorityPCB->next;
+        } else {
+            prevHighestPriorityPCB->next = highestPriorityPCB->next;
+        }
+    }
+
+    return highestPriorityPCB;
+}
 
 int ready_queue_is_empty(ready_Queue *list)
 {
@@ -139,23 +202,21 @@ int ready_queue_length(ready_Queue *list)
     return length;
 }
 
-// ready_Q *NewLinkedList(void){}
-
 // void FreeLinkedList(ready_Queue *list){}
-
-// int LinkedListIsFull(ready_Queue *list){}
 
 // PCB *GetLinkedListElement(ready_Queue *list, int index){}
 
 void print_PCB(const PCB *pcb)
 {
-    printf("Printing pcb\n");
+
     if (pcb != NULL)
     {
         printf("PID: %d\n", pcb->PID);
         printf("PR: %d\n", pcb->PR);
         printf("numCPUBurst: %d\n", pcb->numCPUBurst);
         printf("numIOBurst: %d\n", pcb->numIOBurst);
+        printf("cpuindex: %d\n", pcb->cpuindex);
+        printf("ioindex: %d\n", pcb->ioindex); 
 
         printf("CPUBurst: ");
         for (int i = 0; i < pcb->numCPUBurst; i++)

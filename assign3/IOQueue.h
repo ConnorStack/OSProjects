@@ -23,6 +23,8 @@ PCB *delist_from_IO_queue(IO_Queue *list);
 
 int IO_Q_is_empty(IO_Queue *list);
 
+int IO_queue_length(IO_Queue *list);
+
 // int LinkedListIsFull(IO_Queue *list);
 
 // int LinkedListLength(IO_Queue *list);
