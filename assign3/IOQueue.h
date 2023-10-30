@@ -25,6 +25,10 @@ int IO_Q_is_empty(IO_Queue *list);
 
 int IO_queue_length(IO_Queue *list);
 
+void print_ioq_PCBs_in_list(const IO_Queue *list);
+
+void print_PCB_ioq(const PCB *pcb);
+
 // int LinkedListIsFull(IO_Queue *list);
 
 // int LinkedListLength(IO_Queue *list);

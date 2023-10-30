@@ -86,15 +86,15 @@ int main(int argc, char *argv[])
 	pthread_join(tid_file_reader, (void **)&thread_status);
 	pthread_join(tid_cpu_scheduler, NULL);
 	pthread_join(tid_io_system, NULL);
-	// printf("blerp\n");
-	// print_PCBs_in_list(ready_queue);
+
+	print_rq_PCBs_in_list(ready_queue);
+	print_ioq_PCBs_in_list(IO_queue);
 
 	return 0;
 }
 
 void *file_reading_thread(void *arg)
 {
-	printf("reading file\n");
 	char *filename = (char *)arg;
 	FILE *file = fopen(filename, "r");
 	if (file == NULL)
@@ -116,6 +116,7 @@ void *file_reading_thread(void *arg)
 
 			struct timespec ts_start;
 			clock_gettime(CLOCK_MONOTONIC, &newPCB->ts_begin);
+			pthread_mutex_lock(&ready_queue_mutex);
 
 			currPID++;
 			newPCB->PID = currPID;
@@ -125,8 +126,7 @@ void *file_reading_thread(void *arg)
 			int remaining_instructions = get_next_token();
 			set_PCB_burst_values(newPCB, remaining_instructions);
 
-			pthread_mutex_lock(&ready_queue_mutex);
-			printf("Adding PCB to ready queue from file reading thread\n");
+			// printf("Adding PCB to ready queue from file reading thread\n");
 			enlist_to_ready_queue(ready_queue, newPCB);
 			pthread_mutex_unlock(&ready_queue_mutex);
 			sem_post(&sem_cpu);
@@ -147,9 +147,7 @@ void *file_reading_thread(void *arg)
 			printf("invalid word\n");
 		}
 	}
-	// sem_post(&sem_cpu);
 	file_read_done = 1;
-	printf("\n");
 	fclose(file);
 
 	return NULL;
@@ -157,14 +155,13 @@ void *file_reading_thread(void *arg)
 
 void *cpu_scheduler_thread(void *args)
 {
-	printf("\n\ncpu scheduler\n\n");
 	char *scheduler_alg = (char *)args;
 	struct timespec atimespec;
 	atimespec.tv_sec = 1;
 
 	while (1)
 	{
-		if (ready_queue_is_empty(ready_queue) && !cpu_busy && IO_Q_is_empty(IO_queue) && !io_busy && file_read_done)
+		if (ready_queue_is_empty(ready_queue) && !cpu_busy && IO_Q_is_empty(IO_queue) && !io_busy && file_read_done == 1)
 		{
 			break;
 		}
@@ -184,19 +181,17 @@ void *cpu_scheduler_thread(void *args)
 
 			if (pcb != NULL)
 			{
-				// print_PCB(pcb);
-				// printf("\n");
+
 				usleep(pcb->CPUBurst[pcb->cpuindex] * 1000);
 				pcb->cpuindex++;
-				// printf("cpu index %d\n", pcb->cpuindex);
-				// printf("num cpu burst %d\n", pcb->numCPUBurst);
+
 				if (pcb->cpuindex >= pcb->numCPUBurst)
 				{
+					printf("Final cycle of PCB\n");
 					struct timespec ts_end;
 					clock_gettime(CLOCK_MONOTONIC, &pcb->ts_end);
 					double elapsed = (pcb->ts_end.tv_sec - pcb->ts_begin.tv_sec) + (pcb->ts_end.tv_nsec - pcb->ts_begin.tv_nsec) / 1000000000.0;
 					printf("Turnaround time for PID %d: %f ms\n", pcb->PID, elapsed * 1000);
-					// This is the last CPU burst, terminate the PCB
 					free(pcb);
 					cpu_busy = 0;
 				}
@@ -222,18 +217,11 @@ void *cpu_scheduler_thread(void *args)
 			}
 			cpu_busy = 1;
 
-			// pthread_mutex_lock(&ready_queue_mutex);
-			// PCB *pcb = get_highest_priority_pcb(ready_queue);
-			// delist_specific_pcb(ready_queue, pcb);
-			// pthread_mutex_unlock(&ready_queue_mutex);
-
 			pthread_mutex_lock(&ready_queue_mutex);
-			PCB *pcb = findAndRemoveHighestPriority(ready_queue);
+			// PCB *pcb = get_highest_pr_remove_from_list(ready_queue);
+			PCB *pcb = findHighestPRPCB(ready_queue);
+			removePCBFromQueue(ready_queue, pcb);
 			pthread_mutex_unlock(&ready_queue_mutex);
-
-			// pthread_mutex_lock(&ready_queue_mutex);
-			// PCB *pcb = delist_from_ready_queue(ready_queue);
-			// pthread_mutex_unlock(&ready_queue_mutex);
 
 			// printf("\n");
 			if (pcb != NULL)
@@ -241,8 +229,10 @@ void *cpu_scheduler_thread(void *args)
 				// printf("\n");
 				usleep(pcb->CPUBurst[pcb->cpuindex] * 1000); // Convert to microseconds
 				pcb->cpuindex++;
+				// printf("PCB id: %d, pcb->cpuindex: %d, pcb->numCPUBurst: %d\n", pcb->PID, pcb->cpuindex, pcb->numCPUBurst);
 				if (pcb->cpuindex >= pcb->numCPUBurst)
 				{
+					// printf("Final cycle of PCB PR\n");
 					struct timespec ts_end;
 					clock_gettime(CLOCK_MONOTONIC, &pcb->ts_end);
 					double elapsed = (pcb->ts_end.tv_sec - pcb->ts_begin.tv_sec) + (pcb->ts_end.tv_nsec - pcb->ts_begin.tv_nsec) / 1000000000.0;
@@ -253,10 +243,52 @@ void *cpu_scheduler_thread(void *args)
 				}
 				else
 				{
+					pthread_mutex_lock(&io_queue_mutex);
+					enlist_to_IO_queue(IO_queue, pcb);
+					pthread_mutex_unlock(&io_queue_mutex);
+					io_busy = 0;
+					cpu_busy = 0;
+					sem_post(&sem_io);
+				}
+			}else{
+				printf("UNEXPECTED NULL PCB\n");
+			}
+		}
+		else if (strcmp(scheduler_alg, "SJF") == 0)
+		{
+			int res = sem_timedwait(&sem_cpu, &atimespec);
+			if (res == -1 && errno == ETIMEDOUT)
+			{
+				continue;
+			}
+			cpu_busy = 1;
+
+			pthread_mutex_lock(&ready_queue_mutex);
+			PCB *pcb = findLowestCPUBurstPCB(ready_queue);
+			removePCBFromQueue(ready_queue, pcb);
+			// PCB *pcb = delist_from_ready_queue(ready_queue);
+			pthread_mutex_unlock(&ready_queue_mutex);
+			// Priority scheduling algorithm
+			if (pcb != NULL)
+			{
+
+				usleep(pcb->CPUBurst[pcb->cpuindex] * 1000);
+				pcb->cpuindex++;
+
+				if (pcb->cpuindex >= pcb->numCPUBurst)
+				{
+					printf("Final cycle of PCB\n");
+					struct timespec ts_end;
+					clock_gettime(CLOCK_MONOTONIC, &pcb->ts_end);
+					double elapsed = (pcb->ts_end.tv_sec - pcb->ts_begin.tv_sec) + (pcb->ts_end.tv_nsec - pcb->ts_begin.tv_nsec) / 1000000000.0;
+					printf("Turnaround time for PID %d: %f ms\n", pcb->PID, elapsed * 1000);
+					free(pcb);
+					cpu_busy = 0;
+				}
+				else
+				{
 					// Insert PCB into IO_Q
 					pthread_mutex_lock(&io_queue_mutex);
-					printf("\n\nEnlisting to IO queue from CPU scheduler\n");
-					print_PCB(pcb);
 					enlist_to_IO_queue(IO_queue, pcb);
 					pthread_mutex_unlock(&io_queue_mutex);
 					io_busy = 0;
@@ -264,11 +296,6 @@ void *cpu_scheduler_thread(void *args)
 					sem_post(&sem_io);
 				}
 			}
-		}
-		else if (strcmp(scheduler_alg, "SJF") == 0)
-		{
-
-			// Priority scheduling algorithm
 		}
 		else if (strcmp(scheduler_alg, "RR") == 0)
 		{
@@ -286,13 +313,12 @@ void *cpu_scheduler_thread(void *args)
 
 void *IO_system_thread(void *args)
 {
-	// printf("IO system\n");
 	struct timespec atimespec;
 	atimespec.tv_sec = 1;
 	while (1)
 	{
 		// Check conditions for breaking the loop
-		if (ready_queue_is_empty(ready_queue) && !cpu_busy && IO_Q_is_empty(IO_queue) && file_read_done)
+		if (ready_queue_is_empty(ready_queue) && !cpu_busy && IO_Q_is_empty(IO_queue) && file_read_done==1)
 		{
 			break;
 		}
@@ -304,27 +330,20 @@ void *IO_system_thread(void *args)
 			continue; // Timed out, check conditions again
 		}
 
-		io_busy = 1;
 
-		// Get (remove) the first PCB from IO_Q
+
+		io_busy = 1;
 		pthread_mutex_lock(&io_queue_mutex);
-		// int length = IO_queue_length(IO_queue);
-		// printf("IO queue length, io thread %d\n", length);
 		PCB *pcb = delist_from_IO_queue(IO_queue);
 		pthread_mutex_unlock(&io_queue_mutex);
-
-		// printf("\n\nPCB from io thread: \n");
-		// print_PCB(pcb);
+		pcb->ioindex++;
 
 		// Simulate I/O by sleeping
 		usleep(pcb->IOBurst[pcb->ioindex] * 1000); // Convert to microseconds
 
-		pcb->ioindex++;
 
 		// Insert the PCB into Ready_Q
 		pthread_mutex_lock(&ready_queue_mutex);
-		printf("enlist TO ready queue FROM io thread\n\n");
-		// print_PCBs_in_list(ready_queue);
 		enlist_to_ready_queue(ready_queue, pcb);
 		pthread_mutex_unlock(&ready_queue_mutex);
 		io_busy = 0;
