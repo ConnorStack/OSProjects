@@ -14,10 +14,11 @@
 #include "readyQueue.h"
 #include "IOQueue.h"
 
-typedef struct {
+typedef struct
+{
 	char *algorithm_type;
 	int quantum_value;
-}Scheduler_info;
+} Scheduler_info;
 
 int file_read_done = 0;
 int cpu_sch_done = 0;
@@ -56,15 +57,16 @@ int main(int argc, char *argv[])
 
 	char *algo_type;
 	char *filename;
-	char *quantum;
+	// char *quantum;
 	Scheduler_info scheduler_info;
 
 	// if FIFO, SJF, PRiority
 	if (argc == 5)
 	{
 		algo_type = argv[2];
-		scheduler_info.algorithm_type = filename;
 		filename = argv[4];
+		scheduler_info.algorithm_type = algo_type;
+		scheduler_info.quantum_value = 0;
 
 		printf("Executing: %s\n", argv[0]);
 		printf("%s type: %s\n", argv[1], algo_type);
@@ -73,13 +75,12 @@ int main(int argc, char *argv[])
 	else if (argc == 7)
 	{
 		algo_type = argv[2];
-		scheduler_info.algorithm_type = algo_type;
-
 		int quantum_value = atoi(argv[4]);
+		filename = argv[6];
+
+		scheduler_info.algorithm_type = algo_type;
 		scheduler_info.quantum_value = quantum_value;
 
-		filename = argv[6];
-		
 		printf("Executing: %s\n", argv[0]);
 		printf("%s type: %s\n", argv[1], algo_type);
 		printf("%s %d\n", argv[3], quantum_value);
@@ -90,7 +91,8 @@ int main(int argc, char *argv[])
 		// printf("invalid number of arguments");
 	}
 	printf("\n\n");
-	
+	printf("Alg type: %s\n", scheduler_info.algorithm_type);
+
 	pthread_create(&tid_file_reader, NULL, file_reading_thread, filename);
 	// pthread_create(&tid_cpu_scheduler, NULL, cpu_scheduler_thread, algorithmType);
 	pthread_create(&tid_cpu_scheduler, NULL, cpu_scheduler_thread, &scheduler_info);
@@ -172,10 +174,10 @@ void *cpu_scheduler_thread(void *args)
 
 	char *scheduler_alg = scheduler_info->algorithm_type;
 	int quantum_time = scheduler_info->quantum_value;
-	printf("algorithm: %s", scheduler_alg);
-	printf("quantum time: %d", quantum_time);
+	printf("algorithm: %s\n", scheduler_alg);
+	printf("quantum time: %d\n", quantum_time);
+	printf("cpu sched\n");
 
-	// char *scheduler_alg = (char *)args;
 	struct timespec atimespec;
 	atimespec.tv_sec = 1;
 
@@ -188,6 +190,7 @@ void *cpu_scheduler_thread(void *args)
 
 		if (strcmp(scheduler_alg, "FIFO") == 0)
 		{
+			printf("FIFO\n");
 			int res = sem_timedwait(&sem_cpu, &atimespec);
 			if (res == -1 && errno == ETIMEDOUT)
 			{
@@ -321,6 +324,7 @@ void *cpu_scheduler_thread(void *args)
 		}
 		else if (strcmp(scheduler_alg, "RR") == 0)
 		{
+			// printf("quantum time %d\n", quantum_time);
 			int res = sem_timedwait(&sem_cpu, &atimespec);
 			if (res == -1 && errno == ETIMEDOUT)
 			{
@@ -331,57 +335,69 @@ void *cpu_scheduler_thread(void *args)
 			pthread_mutex_lock(&ready_queue_mutex);
 			PCB *pcb = delist_from_ready_queue(ready_queue);
 			pthread_mutex_unlock(&ready_queue_mutex);
-
+			print_PCB_rq(pcb);
 			if (pcb != NULL)
 			{
-				int remaining_time = quantum_time; // Initialize the remaining time with the quantum value
-				while (remaining_time > 0 && pcb->cpuindex < pcb->numCPUBurst)
+				// Check if the PCB has remaining CPU bursts
+				printf("Got PCB from ready queue: PID = %d\n", pcb->PID); // Debugging
+				if (pcb->cpuindex < pcb->numCPUBurst)
 				{
-					// Calculate the time to spend on this CPU burst
-					int time_to_spend = (remaining_time >= pcb->CPUBurst[pcb->cpuindex]) ? pcb->CPUBurst[pcb->cpuindex] : remaining_time;
-
-					usleep(time_to_spend * 1000); // Spend time on this burst
-					remaining_time -= time_to_spend;
-					pcb->cpuindex++;
-
-					if (remaining_time > 0)
+					int cpu_burst = pcb->CPUBurst[pcb->cpuindex];
+					printf("PID %d: CPU burst = %d\n", pcb->PID, cpu_burst); // Debugging
+					if (quantum_time < cpu_burst)
 					{
-						// Insert the PCB back into the ready queue
+						pcb->CPUBurst[pcb->cpuindex] -= quantum_time;
+						printf("PID %d: Remaining CPU burst = %d\n", pcb->PID, pcb->CPUBurst[pcb->cpuindex]); // Debugging
+						usleep(quantum_time * 1000);
+					}
+					else
+					{
+						printf("PID %d: CPU burst finished\n", pcb->PID); // Debugging
+						usleep(cpu_burst * 1000);
+						pcb->CPUBurst[pcb->cpuindex] = 0;
+					}
+					if (pcb->CPUBurst[pcb->cpuindex] == 0)
+					{
+						printf("PID %d: All CPU bursts finished\n", pcb->PID); // Debugging
+						pcb->cpuindex++;
+						pthread_mutex_lock(&io_queue_mutex);
+						enlist_to_IO_queue(IO_queue, pcb);
+						pthread_mutex_unlock(&io_queue_mutex);
+						io_busy = 0;
+						sem_post(&sem_io);
+					}
+					else
+					{
+						printf("PID %d: Move to back of ready queue\n", pcb->PID); // Debugging
+						// PCB still has CPU bursts left, move to the back of the ready queue
 						pthread_mutex_lock(&ready_queue_mutex);
 						enlist_to_ready_queue(ready_queue, pcb);
 						pthread_mutex_unlock(&ready_queue_mutex);
+						cpu_busy = 0;
+						sem_post(&sem_cpu);
 					}
-				}
 
-				if (pcb->cpuindex < pcb->numCPUBurst)
+				}else if (pcb->cpuindex >= pcb->numCPUBurst)
 				{
-					// The process still has CPU bursts left, insert it back into the ready queue
-					pthread_mutex_lock(&ready_queue_mutex);
-					enlist_to_ready_queue(ready_queue, pcb);
-					pthread_mutex_unlock(&ready_queue_mutex);
+					printf("Final cycle of PCB\n");
+					struct timespec ts_end;
+					clock_gettime(CLOCK_MONOTONIC, &pcb->ts_end);
+					double elapsed = (pcb->ts_end.tv_sec - pcb->ts_begin.tv_sec) + (pcb->ts_end.tv_nsec - pcb->ts_begin.tv_nsec) / 1000000000.0;
+					printf("Turnaround time for PID %d: %f ms\n", pcb->PID, elapsed * 1000);
+					free(pcb);
+					cpu_busy = 0;
+					
 				}
-				else
-				{
-					// The process has completed its CPU bursts, insert it into the IO queue
-					pthread_mutex_lock(&io_queue_mutex);
-					enlist_to_IO_queue(IO_queue, pcb);
-					pthread_mutex_unlock(&io_queue_mutex);
-					io_busy = 0;
-					sem_post(&sem_io);
-				}
-
-				cpu_busy = 0;
 			}
 		}
-	
-	else
-	{
-		// Handle the case where the algorithm is not recognized
+		else
+		{
+			// Handle the case where the algorithm is not recognized
+		}
+		cpu_sch_done = 1;
 	}
-}
 
-cpu_sch_done = 1;
-return NULL;
+		return NULL;
 }
 
 void *IO_system_thread(void *args)
