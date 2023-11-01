@@ -200,9 +200,6 @@ void *cpu_scheduler_thread(void *args)
 
 	char *scheduler_alg = scheduler_info->algorithm_type;
 	int quantum_time = scheduler_info->quantum_value;
-	// printf("algorithm: %s\n", scheduler_alg);
-	// printf("quantum time: %d\n", quantum_time);
-	// printf("cpu sched\n");
 
 	struct timespec atimespec;
 	atimespec.tv_sec = 1;
@@ -229,16 +226,11 @@ void *cpu_scheduler_thread(void *args)
 
 			if (pcb != NULL)
 			{
-
 				usleep(pcb->CPUBurst[pcb->cpuindex] * 1000);
-
 				pcb->cpuindex++;
-
-				// Take our milisecond value and convert it to seconds
 
 				if (pcb->cpuindex >= pcb->numCPUBurst)
 				{
-					// printf("Final cycle of PCB\n");
 					struct timespec ts_end;
 					clock_gettime(CLOCK_MONOTONIC, &pcb->ts_end);
 					double elapsed = (pcb->ts_end.tv_sec - pcb->ts_begin.tv_sec) + (pcb->ts_end.tv_nsec - pcb->ts_begin.tv_nsec) / 1000000000.0;
@@ -253,23 +245,6 @@ void *cpu_scheduler_thread(void *args)
 					printf("Throughput                  : %.3lf processes / ms\n", throughput);
 					printf("Avg Turnaround              : %f ms\n", pcb->PID, elapsed * 1000);
 					printf("Avg waiting time in R queue : %.1lf ms\n", rtime);
-					// printf("-------------------------------------------------------\n");
-					// Update the total CPU and IO times
-					// total_cpu_time += pcb->total_cpu_time;
-					// total_io_time += pcb->total_io_time;
-					// total_time += pcb->total_time;
-
-					// double utilization = (total_cpu_time / total_time) * 100;
-					// double throughput = process_count / total_time;
-					// double turnaround_time = elapsed * 1000;
-
-					// // Print the metrics
-					// printf("-------------------------------------------------------\n");
-					// printf("Input File Name             : %s\n", scheduler_info->filename);
-					// printf("CPU Scheduling Alg          : %s\n", scheduler_info->algorithm_type);
-					// printf("CPU Utilization             : %.3f%%\n", utilization);
-					// printf("Throughput                  : %.3f processes / ms\n", throughput);
-					// printf("Avg Turnaround        PID %d: %.3f ms\n", pcb->PID, turnaround_time);
 
 					free(pcb);
 					cpu_busy = 0;
