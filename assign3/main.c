@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
 
 	char *algo_type;
 	char *filename;
-	// char *quantum;
+
 	Scheduler_info scheduler_info;
 
 	// if FIFO, SJF, PRiority
@@ -374,7 +374,6 @@ void *cpu_scheduler_thread(void *args)
 		}
 		else if (strcmp(scheduler_alg, "RR") == 0)
 		{
-			// printf("quantum time %d\n", quantum_time);
 			int res = sem_timedwait(&sem_cpu, &atimespec);
 			if (res == -1 && errno == ETIMEDOUT)
 			{
@@ -451,7 +450,7 @@ void *cpu_scheduler_thread(void *args)
 		}
 		else
 		{
-			// Handle the case where the algorithm is not recognized
+			perror("Invalid algorithm.\n");
 		}
 		cpu_sch_done = 1;
 	}
@@ -472,10 +471,10 @@ void *IO_system_thread(void *args)
 		}
 
 		// Wait for a PCB to be available in IO_Q
-		int res = sem_timedwait(&sem_io, &atimespec /* say 1 sec */);
+		int res = sem_timedwait(&sem_io, &atimespec);
 		if (res == -1 && errno == ETIMEDOUT)
 		{
-			continue; // Timed out, check conditions again
+			continue; 
 		}
 
 		io_busy = 1;
@@ -484,11 +483,10 @@ void *IO_system_thread(void *args)
 		pthread_mutex_unlock(&io_queue_mutex);
 		double io_time = pcb->IOBurst[pcb->ioindex] * 0.001;
 		total_io_time += io_time;
-		// printf("Total IO time: %f\n", total_io_time);
 		pcb->ioindex++;
 
 		// Simulate I/O by sleeping
-		usleep(pcb->IOBurst[pcb->ioindex] * 1000); // Convert to microseconds
+		usleep(pcb->IOBurst[pcb->ioindex] * 1000);
 
 		// Insert the PCB into Ready_Q
 		pthread_mutex_lock(&ready_queue_mutex);
