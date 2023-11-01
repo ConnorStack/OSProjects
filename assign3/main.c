@@ -53,6 +53,7 @@ int main(int argc, char *argv[])
 	pthread_t tid_file_reader, tid_cpu_scheduler, tid_io_system;
 	int thread_status;
 
+	// Initialize semaphores and queues
 	sem_init(&sem_cpu, 0, 0);
 	sem_init(&sem_io, 0, 0);
 
@@ -67,7 +68,7 @@ int main(int argc, char *argv[])
 
 	Scheduler_info scheduler_info;
 
-	// if FIFO, SJF, PRiority
+	// Parse command line arguments
 	if (argc == 5)
 	{
 		algo_type = argv[2];
@@ -75,11 +76,7 @@ int main(int argc, char *argv[])
 		scheduler_info.algorithm_type = algo_type;
 		scheduler_info.filename = filename;
 		scheduler_info.quantum_value = 0;
-
-		printf("Executing: %s\n", argv[0]);
-		printf("%s type: %s\n", argv[1], algo_type);
-		printf("%s %s\n", argv[3], filename);
-	} // RR
+	} // RR only
 	else if (argc == 7)
 	{
 		algo_type = argv[2];
@@ -89,19 +86,13 @@ int main(int argc, char *argv[])
 		scheduler_info.algorithm_type = algo_type;
 		scheduler_info.filename = filename;
 		scheduler_info.quantum_value = quantum_value;
-
-		printf("Executing: %s\n", argv[0]);
-		printf("%s type: %s\n", argv[1], algo_type);
-		printf("%s %d\n", argv[3], quantum_value);
-		printf("%s %s\n", argv[5], filename);
 	}
 	else
 	{
 		printf("invalid number of arguments");
 	}
-	printf("\n\n");
-	printf("Alg type: %s\n", scheduler_info.algorithm_type);
 
+	 // Create and join threads
 	pthread_create(&tid_file_reader, NULL, file_reading_thread, filename);
 	pthread_create(&tid_cpu_scheduler, NULL, cpu_scheduler_thread, &scheduler_info);
 	pthread_create(&tid_io_system, NULL, IO_system_thread, NULL);
@@ -109,7 +100,6 @@ int main(int argc, char *argv[])
 	pthread_join(tid_file_reader, (void **)&thread_status);
 	pthread_join(tid_cpu_scheduler, NULL);
 	pthread_join(tid_io_system, NULL);
-
 	printf("-------------------------------------------------------\n");
 	return 0;
 }
@@ -135,6 +125,7 @@ void *file_reading_thread(void *arg)
 			PCB *newPCB;
 			newPCB = malloc(sizeof(PCB));
 
+			// Get the current timestamp for PCB start time
 			struct timespec ts_start;
 			clock_gettime(CLOCK_MONOTONIC, &newPCB->ts_begin);
 			pthread_mutex_lock(&ready_queue_mutex);
@@ -142,7 +133,7 @@ void *file_reading_thread(void *arg)
 			currPID++;
 			newPCB->PID = currPID;
 
-			// These calls are order sensitive, they invoke strtok, so changing their order changes thier values
+			// Parse and extract PCB attributes
 			newPCB->PR = get_next_token();
 			int remaining_instructions = get_next_token();
 			set_PCB_burst_values(newPCB, remaining_instructions);
@@ -151,6 +142,7 @@ void *file_reading_thread(void *arg)
 
 			int n = 0;
 			int m = 0;
+			// Calculate total CPU and I/O times
 			for (int i = 0; i < remaining_instructions; i++)
 			{
 				if (i % 2 == 0)
@@ -165,8 +157,10 @@ void *file_reading_thread(void *arg)
 				}
 			}
 
+			// Calculate total time for the PCB
 			newPCB->total_time = newPCB->total_io_time + newPCB->total_cpu_time;
 
+			// Add the PCB to the ready queue and signal the CPU scheduler
 			enlist_to_ready_queue(ready_queue, newPCB);
 			pthread_mutex_unlock(&ready_queue_mutex);
 			sem_post(&sem_cpu);
@@ -203,6 +197,7 @@ void *cpu_scheduler_thread(void *args)
 
 	while (1)
 	{
+		// Check if conditions are meant to exit CPU thread
 		if (ready_queue_is_empty(ready_queue) && !cpu_busy && IO_Q_is_empty(IO_queue) && !io_busy && file_read_done == 1)
 		{
 			break;
@@ -210,6 +205,7 @@ void *cpu_scheduler_thread(void *args)
 
 		if (strcmp(scheduler_alg, "FIFO") == 0)
 		{
+			//Acquire the CPU semaphore or timeout
 			int res = sem_timedwait(&sem_cpu, &atimespec);
 			if (res == -1 && errno == ETIMEDOUT)
 			{
@@ -223,6 +219,7 @@ void *cpu_scheduler_thread(void *args)
 
 			if (pcb != NULL)
 			{
+				// Simulate CPU burst
 				usleep(pcb->CPUBurst[pcb->cpuindex] * 1000);
 				pcb->cpuindex++;
 
@@ -260,7 +257,7 @@ void *cpu_scheduler_thread(void *args)
 		}
 		else if (strcmp(scheduler_alg, "PR") == 0)
 		{
-			// printf("PR scheduler activated\n");
+			//Acquire the CPU semaphore or timeout
 			int res = sem_timedwait(&sem_cpu, &atimespec);
 			if (res == -1 && errno == ETIMEDOUT)
 			{
@@ -273,20 +270,17 @@ void *cpu_scheduler_thread(void *args)
 			remove_PCB_from_queue(ready_queue, pcb);
 			pthread_mutex_unlock(&ready_queue_mutex);
 
-			// printf("\n");
 			if (pcb != NULL)
 			{
-				// printf("\n");
-				usleep(pcb->CPUBurst[pcb->cpuindex] * 1000); // Convert to microseconds
+				// Simulate CPU burst
+				usleep(pcb->CPUBurst[pcb->cpuindex] * 1000); 
 				pcb->cpuindex++;
-				// printf("PCB id: %d, pcb->cpuindex: %d, pcb->numCPUBurst: %d\n", pcb->PID, pcb->cpuindex, pcb->numCPUBurst);
+				
 				if (pcb->cpuindex >= pcb->numCPUBurst)
 				{
-					// printf("Final cycle of PCB PR\n");
 					struct timespec ts_end;
 					clock_gettime(CLOCK_MONOTONIC, &pcb->ts_end);
 					double elapsed = (pcb->ts_end.tv_sec - pcb->ts_begin.tv_sec) + (pcb->ts_end.tv_nsec - pcb->ts_begin.tv_nsec) / 1000000000.0;
-					// double elapsed = (pcb->ts_end.tv_sec - pcb->ts_begin.tv_sec) + (pcb->ts_end.tv_nsec - pcb->ts_begin.tv_nsec) / 1000000000.0;
 					double utilization = (pcb->total_io_time / pcb->total_time) * 100;
 					double throughput = pcb->total_processes / pcb->total_time;
 					double turnaround_time = pcb->total_time / pcb->total_processes;
@@ -319,6 +313,7 @@ void *cpu_scheduler_thread(void *args)
 		}
 		else if (strcmp(scheduler_alg, "SJF") == 0)
 		{
+			//Acquire the CPU semaphore or timeout
 			int res = sem_timedwait(&sem_cpu, &atimespec);
 			if (res == -1 && errno == ETIMEDOUT)
 			{
@@ -331,10 +326,9 @@ void *cpu_scheduler_thread(void *args)
 			remove_PCB_from_queue(ready_queue, pcb); 
 			pthread_mutex_unlock(&ready_queue_mutex);
 
-			// Priority scheduling algorithm
 			if (pcb != NULL)
 			{
-
+				// Simulate CPU burst
 				usleep(pcb->CPUBurst[pcb->cpuindex] * 1000);
 				pcb->cpuindex++;
 
