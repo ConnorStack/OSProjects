@@ -327,7 +327,7 @@ void *cpu_scheduler_thread(void *args)
 					printf("Throughput                  : %.3lf processes / ms\n", throughput);
 					printf("Avg Turnaround              : %f ms\n", pcb->PID, elapsed * 1000);
 					printf("Avg waiting time in R queue : %.1lf ms\n", rtime);
-					// This is the last CPU burst, terminate the PCB
+
 					free(pcb);
 					cpu_busy = 0;
 				}
@@ -385,8 +385,6 @@ void *cpu_scheduler_thread(void *args)
 					printf("Throughput                  : %.3lf processes / ms\n", throughput);
 					printf("Avg Turnaround              : %f ms\n", pcb->PID, elapsed * 1000);
 					printf("Avg waiting time in R queue : %.1lf ms\n", rtime);
-
-					// printf("Turnaround time for PID %d: %f ms\n", pcb->PID, elapsed * 1000);
 					free(pcb);
 					cpu_busy = 0;
 				}
@@ -474,8 +472,6 @@ void *cpu_scheduler_thread(void *args)
 					printf("Throughput                  : %.3lf processes / ms\n", throughput);
 					printf("Avg Turnaround              : %f ms\n", pcb->PID, elapsed * 1000);
 					printf("Avg waiting time in R queue : %.1lf ms\n", rtime);
-
-					printf("Turnaround time for PID %d: %f ms\n", pcb->PID, elapsed * 1000);
 					free(pcb);
 					cpu_busy = 0;
 				}
