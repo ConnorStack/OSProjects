@@ -108,40 +108,44 @@ PCB *delist_specific_pcb(ready_Queue *list, PCB *pcb)
     return pcb;
 }
 
-void removePCBFromQueue(ready_Queue* queue, PCB* pcb) {
-    if (queue == NULL || pcb == NULL) {
-        return; // Invalid inputs
+void remove_PCB_from_queue(ready_Queue* list, PCB* pcb) {
+    if (list == NULL) {
+        return; 
     }
 
-    PCB* currentPCB = queue->head;
+    if(pcb == NULL){
+        return;
+    }
+
+    PCB* currentPCB = list->head;
     PCB* previousPCB = NULL;
 
-    // Find the PCB to be removed in the queue
+    // Find the PCB to be removed in the list
     while (currentPCB != NULL && currentPCB != pcb) {
         previousPCB = currentPCB;
         currentPCB = currentPCB->next;
     }
 
     if (currentPCB == NULL) {
-        return; // PCB not found in the queue
+        return; // PCB not found in the list
     }
 
     if (previousPCB != NULL) {
-        // The PCB is not the head of the queue
+        // The PCB is not the head of the list
         previousPCB->next = currentPCB->next;
     } else {
-        // The PCB is the head of the queue
-        queue->head = currentPCB->next;
+        // The PCB is the head of the list
+        list->head = currentPCB->next;
     }
 
-    if (currentPCB == queue->tail) {
-        // If the PCB is the tail of the queue, update the tail
-        queue->tail = previousPCB;
+    if (currentPCB == list->tail) {
+        // If the PCB is the tail of the list, update the tail
+        list->tail = previousPCB;
     }
 }
 
-PCB* findHighestPRPCB(ready_Queue* queue) {
-    if (ready_queue_is_empty(queue)) {
+PCB* find_highest_PR_PCB(ready_Queue* list) {
+    if (ready_queue_is_empty(list)) {
         return NULL; // The queue is empty
     }
 
@@ -149,7 +153,7 @@ PCB* findHighestPRPCB(ready_Queue* queue) {
     int maxPR = INT_MIN; // Initialize with a small value
 
     // Iterate through the ready queue to find the PCB with the highest PR
-    PCB* currentPCB = queue->head;
+    PCB* currentPCB = list->head;
 
     while (currentPCB != NULL) {
         if (currentPCB->PR > maxPR) {
@@ -163,13 +167,14 @@ PCB* findHighestPRPCB(ready_Queue* queue) {
     return highestPRPCB;
 }
 
-PCB* findLowestCPUBurstPCB(ready_Queue* queue) {
+PCB* find_lowest_CPU_burst_PCB(ready_Queue* queue) {
     if (ready_queue_is_empty(queue)) {
-        return NULL; // The queue is empty
+        return NULL; 
     }
 
     PCB* lowestCPUBurstPCB = NULL;
-    int minCPUBurst = INT_MAX; // Initialize with a large value
+    //  Set a very large value
+    int minCPUBurst = INT_MAX; 
 
     // Iterate through the ready queue to find the PCB with the lowest numCPUBurst
     PCB* currentPCB = queue->head;

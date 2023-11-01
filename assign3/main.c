@@ -270,8 +270,8 @@ void *cpu_scheduler_thread(void *args)
 
 			pthread_mutex_lock(&ready_queue_mutex);
 			// PCB *pcb = get_highest_pr_remove_from_list(ready_queue);
-			PCB *pcb = findHighestPRPCB(ready_queue);
-			removePCBFromQueue(ready_queue, pcb);
+			PCB *pcb = find_highest_PR_PCB(ready_queue);
+			remove_PCB_from_queue(ready_queue, pcb);
 			pthread_mutex_unlock(&ready_queue_mutex);
 
 			// printf("\n");
@@ -328,10 +328,11 @@ void *cpu_scheduler_thread(void *args)
 			cpu_busy = 1;
 
 			pthread_mutex_lock(&ready_queue_mutex);
-			PCB *pcb = findLowestCPUBurstPCB(ready_queue);
-			removePCBFromQueue(ready_queue, pcb);
+			PCB *pcb = find_lowest_CPU_burst_PCB(ready_queue);//-----------------------------------------
+			remove_PCB_from_queue(ready_queue, pcb); //-----------------------------------------
 			// PCB *pcb = delist_from_ready_queue(ready_queue);
 			pthread_mutex_unlock(&ready_queue_mutex);
+
 			// Priority scheduling algorithm
 			if (pcb != NULL)
 			{
@@ -387,9 +388,11 @@ void *cpu_scheduler_thread(void *args)
 
 			if (pcb != NULL)
 			{
+				// Check if PCB has more CPU bursts to execute
 				if (pcb->cpuindex < pcb->numCPUBurst)
 				{
 					int cpu_burst = pcb->CPUBurst[pcb->cpuindex];
+					//Quantum can be subtracked with difference greater than 0 
 					if (quantum_time < cpu_burst)
 					{
 						pcb->CPUBurst[pcb->cpuindex] -= quantum_time;
@@ -400,6 +403,8 @@ void *cpu_scheduler_thread(void *args)
 						usleep(cpu_burst * 1000);
 						pcb->CPUBurst[pcb->cpuindex] = 0;
 					}
+
+					//If the CPU burst is 0, It can be sent to the IO queue
 					if (pcb->CPUBurst[pcb->cpuindex] == 0)
 					{
 						pcb->cpuindex++;
@@ -409,9 +414,9 @@ void *cpu_scheduler_thread(void *args)
 						io_busy = 0;
 						sem_post(&sem_io);
 					}
+					//Otherwise it needs to go back to the readyqueue
 					else
 					{
-						// PCB still has CPU bursts left, move to the back of the ready queue
 						pthread_mutex_lock(&ready_queue_mutex);
 						enlist_to_ready_queue(ready_queue, pcb);
 						pthread_mutex_unlock(&ready_queue_mutex);
@@ -419,6 +424,7 @@ void *cpu_scheduler_thread(void *args)
 						sem_post(&sem_cpu);
 					}
 				}
+				//End condition, index exceeds number of bursts
 				else if (pcb->cpuindex >= pcb->numCPUBurst)
 				{
 					printf("Final cycle of PCB\n");
@@ -471,9 +477,11 @@ void *IO_system_thread(void *args)
 		}
 
 		io_busy = 1;
+
 		pthread_mutex_lock(&io_queue_mutex);
 		PCB *pcb = delist_from_IO_queue(IO_queue);
 		pthread_mutex_unlock(&io_queue_mutex);
+
 		double io_time = pcb->IOBurst[pcb->ioindex] * 0.001;
 		total_io_time += io_time;
 		pcb->ioindex++;
@@ -485,6 +493,7 @@ void *IO_system_thread(void *args)
 		pthread_mutex_lock(&ready_queue_mutex);
 		enlist_to_ready_queue(ready_queue, pcb);
 		pthread_mutex_unlock(&ready_queue_mutex);
+
 		io_busy = 0;
 		sem_post(&sem_cpu);
 	}

@@ -25,11 +25,11 @@ PCB *delist_specific_pcb(ready_Queue *list, PCB *pcb);
 
 PCB *get_highest_pr_remove_from_list(ready_Queue *ready_queue);
 
-void removePCBFromQueue(ready_Queue* queue, PCB* pcb);
+void remove_PCB_from_queue(ready_Queue* queue, PCB* pcb);
 
-PCB* findLowestCPUBurstPCB(ready_Queue* queue);
+PCB* find_lowest_CPU_burst_PCB(ready_Queue* queue);
 
-PCB* findHighestPRPCB(ready_Queue* queue);
+PCB* find_highest_PR_PCB(ready_Queue* queue);
 
 // ready_Q *NewLinkedList(void);
 
