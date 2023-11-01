@@ -327,9 +327,8 @@ void *cpu_scheduler_thread(void *args)
 			cpu_busy = 1;
 
 			pthread_mutex_lock(&ready_queue_mutex);
-			PCB *pcb = find_lowest_CPU_burst_PCB(ready_queue);//-----------------------------------------
-			remove_PCB_from_queue(ready_queue, pcb); //-----------------------------------------
-			// PCB *pcb = delist_from_ready_queue(ready_queue);
+			PCB *pcb = find_lowest_CPU_burst_PCB(ready_queue);
+			remove_PCB_from_queue(ready_queue, pcb); 
 			pthread_mutex_unlock(&ready_queue_mutex);
 
 			// Priority scheduling algorithm

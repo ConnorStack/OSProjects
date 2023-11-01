@@ -78,31 +78,6 @@ PCB *get_highest_priority_pcb(ready_Queue *list)
     return highest_pr_pcb;
 }
 
-// PCB *delist_specific_pcb(ready_Queue *list, PCB *pcb)
-// {
-//     if (pcb == NULL)
-//     {
-//         return NULL; 
-//     }
-
-//     if (list->head == pcb) {
-//         list->head = pcb->next;
-//     }
-//     if (list->tail == pcb) {
-//         list->tail = pcb->prev;
-//     }
-
-//     if (pcb->prev) {
-//         pcb->prev->next = pcb->next;
-//     }
-//     if (pcb->next) {
-//         pcb->next->prev = pcb->prev;
-//     }
-
-//     pcb->next = pcb->prev = NULL;
-//     return pcb;
-// }
-
 void remove_PCB_from_queue(ready_Queue* list, PCB* pcb) {
     if (list == NULL) {
         return; 
