@@ -269,7 +269,6 @@ void *cpu_scheduler_thread(void *args)
 			cpu_busy = 1;
 
 			pthread_mutex_lock(&ready_queue_mutex);
-			// PCB *pcb = get_highest_pr_remove_from_list(ready_queue);
 			PCB *pcb = find_highest_PR_PCB(ready_queue);
 			remove_PCB_from_queue(ready_queue, pcb);
 			pthread_mutex_unlock(&ready_queue_mutex);

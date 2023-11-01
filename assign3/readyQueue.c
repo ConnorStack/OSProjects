@@ -191,34 +191,6 @@ PCB* find_lowest_CPU_burst_PCB(ready_Queue* queue) {
     return lowestCPUBurstPCB;
 }
 
-
-PCB *get_highest_pr_remove_from_list(ready_Queue *ready_queue) {
-    PCB **head = &(ready_queue->head);
-    PCB *current = *head;
-    PCB *prev = NULL;
-    PCB *highestPriorityPCB = NULL;
-    PCB *prevHighestPriorityPCB = NULL;
-
-    while (current != NULL) {
-        if (highestPriorityPCB == NULL || current->PR > highestPriorityPCB->PR) {
-            prevHighestPriorityPCB = prev;
-            highestPriorityPCB = current;
-        }
-        prev = current;
-        current = current->next;
-    }
-
-    if (highestPriorityPCB != NULL) {
-        if (prevHighestPriorityPCB == NULL) {
-            *head = highestPriorityPCB->next;
-        } else {
-            prevHighestPriorityPCB->next = highestPriorityPCB->next;
-        }
-    }
-
-    return highestPriorityPCB;
-}
-
 int ready_queue_is_empty(ready_Queue *list)
 {
     if (list->head == NULL)
