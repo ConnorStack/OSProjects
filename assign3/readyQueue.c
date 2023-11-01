@@ -22,17 +22,14 @@ ready_Queue *new_ready_queue()
 
 void enlist_to_ready_queue(ready_Queue *list, PCB *element)
 {
-    // printf("Adding element to the ready queue\n");
     if (list->head != NULL)
     {
-        // printf("Adding element to ready queue. Elements exists already\n");
         list->tail->next = element;
         list->tail = element;
         element->next = NULL;
     }
     else
     {
-        // printf("Adding element to ready queue. Head is null\n");
         list->head = element;
         list->tail = element;
         element->next = NULL;
@@ -62,7 +59,6 @@ PCB *delist_from_ready_queue(ready_Queue *list)
 
 PCB *get_highest_priority_pcb(ready_Queue *list)
 {
-    // printf("getting highest priority pcb\n");
     if (list->head == NULL) {
         return NULL; 
     }
@@ -79,34 +75,33 @@ PCB *get_highest_priority_pcb(ready_Queue *list)
         current = current->next;
     }
 
-    // print_PCB(highest_pr_pcb);
     return highest_pr_pcb;
 }
 
-PCB *delist_specific_pcb(ready_Queue *list, PCB *pcb)
-{
-    if (pcb == NULL)
-    {
-        return NULL; 
-    }
+// PCB *delist_specific_pcb(ready_Queue *list, PCB *pcb)
+// {
+//     if (pcb == NULL)
+//     {
+//         return NULL; 
+//     }
 
-    if (list->head == pcb) {
-        list->head = pcb->next;
-    }
-    if (list->tail == pcb) {
-        list->tail = pcb->prev;
-    }
+//     if (list->head == pcb) {
+//         list->head = pcb->next;
+//     }
+//     if (list->tail == pcb) {
+//         list->tail = pcb->prev;
+//     }
 
-    if (pcb->prev) {
-        pcb->prev->next = pcb->next;
-    }
-    if (pcb->next) {
-        pcb->next->prev = pcb->prev;
-    }
+//     if (pcb->prev) {
+//         pcb->prev->next = pcb->next;
+//     }
+//     if (pcb->next) {
+//         pcb->next->prev = pcb->prev;
+//     }
 
-    pcb->next = pcb->prev = NULL;
-    return pcb;
-}
+//     pcb->next = pcb->prev = NULL;
+//     return pcb;
+// }
 
 void remove_PCB_from_queue(ready_Queue* list, PCB* pcb) {
     if (list == NULL) {
@@ -120,39 +115,35 @@ void remove_PCB_from_queue(ready_Queue* list, PCB* pcb) {
     PCB* currentPCB = list->head;
     PCB* previousPCB = NULL;
 
-    // Find the PCB to be removed in the list
     while (currentPCB != NULL && currentPCB != pcb) {
         previousPCB = currentPCB;
         currentPCB = currentPCB->next;
     }
 
     if (currentPCB == NULL) {
-        return; // PCB not found in the list
+        return; 
     }
 
     if (previousPCB != NULL) {
-        // The PCB is not the head of the list
         previousPCB->next = currentPCB->next;
     } else {
-        // The PCB is the head of the list
         list->head = currentPCB->next;
     }
 
     if (currentPCB == list->tail) {
-        // If the PCB is the tail of the list, update the tail
         list->tail = previousPCB;
     }
 }
 
 PCB* find_highest_PR_PCB(ready_Queue* list) {
     if (ready_queue_is_empty(list)) {
-        return NULL; // The queue is empty
+        return NULL; 
     }
 
     PCB* highestPRPCB = NULL;
-    int maxPR = INT_MIN; // Initialize with a small value
+    int maxPR = INT_MIN; 
 
-    // Iterate through the ready queue to find the PCB with the highest PR
+
     PCB* currentPCB = list->head;
 
     while (currentPCB != NULL) {
@@ -173,10 +164,8 @@ PCB* find_lowest_CPU_burst_PCB(ready_Queue* queue) {
     }
 
     PCB* lowestCPUBurstPCB = NULL;
-    //  Set a very large value
     int minCPUBurst = INT_MAX; 
 
-    // Iterate through the ready queue to find the PCB with the lowest numCPUBurst
     PCB* currentPCB = queue->head;
 
     while (currentPCB != NULL) {

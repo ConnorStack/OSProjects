@@ -21,7 +21,7 @@ PCB *delist_from_ready_queue(ready_Queue *list);
 
 PCB *get_highest_priority_pcb(ready_Queue *list);
 
-PCB *delist_specific_pcb(ready_Queue *list, PCB *pcb);
+// PCB *delist_specific_pcb(ready_Queue *list, PCB *pcb);
 
 void remove_PCB_from_queue(ready_Queue* queue, PCB* pcb);
 
