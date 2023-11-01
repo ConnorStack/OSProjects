@@ -10,12 +10,7 @@ typedef struct IO_Queue
 
 } IO_Queue;
 
-
 IO_Queue *new_IO_queue();
-
-// IO_Q *NewLinkedList(void);
-
-// void FreeLinkedList(IO_Queue *list);
 
 void enlist_to_IO_queue(IO_Queue *list, PCB *element);
 
@@ -28,11 +23,5 @@ int IO_queue_length(IO_Queue *list);
 void print_ioq_PCBs_in_list(const IO_Queue *list);
 
 void print_PCB_ioq(const PCB *pcb);
-
-// int LinkedListIsFull(IO_Queue *list);
-
-// int LinkedListLength(IO_Queue *list);
-
-// PCB *GetLinkedListElement(IO_Queue *list, int index);
 
 #endif
