@@ -315,7 +315,18 @@ void *cpu_scheduler_thread(void *args)
 					struct timespec ts_end;
 					clock_gettime(CLOCK_MONOTONIC, &pcb->ts_end);
 					double elapsed = (pcb->ts_end.tv_sec - pcb->ts_begin.tv_sec) + (pcb->ts_end.tv_nsec - pcb->ts_begin.tv_nsec) / 1000000000.0;
-					printf("Turnaround time for PID %d: %f ms\n", pcb->PID, elapsed * 1000);
+					// double elapsed = (pcb->ts_end.tv_sec - pcb->ts_begin.tv_sec) + (pcb->ts_end.tv_nsec - pcb->ts_begin.tv_nsec) / 1000000000.0;
+					double utilization = (pcb->total_io_time / pcb->total_time) * 100;
+					double throughput = pcb->total_processes / pcb->total_time;
+					double turnaround_time = pcb->total_time / pcb->total_processes;
+					double rtime = pcb->total_time - pcb->total_io_time / pcb->total_processes;
+					printf("-------------------------------------------------------\n");
+					printf("Input File Name             : %s\n", scheduler_info->filename);
+					printf("CPU Scheduling Alg          : %s\n", scheduler_info->algorithm_type);
+					printf("CPU Utilization             : %.2lf%%\n", utilization);
+					printf("Throughput                  : %.3lf processes / ms\n", throughput);
+					printf("Avg Turnaround              : %f ms\n", pcb->PID, elapsed * 1000);
+					printf("Avg waiting time in R queue : %.1lf ms\n", rtime);
 					// This is the last CPU burst, terminate the PCB
 					free(pcb);
 					cpu_busy = 0;
@@ -362,7 +373,20 @@ void *cpu_scheduler_thread(void *args)
 					struct timespec ts_end;
 					clock_gettime(CLOCK_MONOTONIC, &pcb->ts_end);
 					double elapsed = (pcb->ts_end.tv_sec - pcb->ts_begin.tv_sec) + (pcb->ts_end.tv_nsec - pcb->ts_begin.tv_nsec) / 1000000000.0;
-					printf("Turnaround time for PID %d: %f ms\n", pcb->PID, elapsed * 1000);
+
+					double utilization = (pcb->total_io_time / pcb->total_time) * 100;
+					double throughput = pcb->total_processes / pcb->total_time;
+					double turnaround_time = pcb->total_time / pcb->total_processes;
+					double rtime = pcb->total_time - pcb->total_io_time / pcb->total_processes;
+					printf("-------------------------------------------------------\n");
+					printf("Input File Name             : %s\n", scheduler_info->filename);
+					printf("CPU Scheduling Alg          : %s\n", scheduler_info->algorithm_type);
+					printf("CPU Utilization             : %.2lf%%\n", utilization);
+					printf("Throughput                  : %.3lf processes / ms\n", throughput);
+					printf("Avg Turnaround              : %f ms\n", pcb->PID, elapsed * 1000);
+					printf("Avg waiting time in R queue : %.1lf ms\n", rtime);
+
+					// printf("Turnaround time for PID %d: %f ms\n", pcb->PID, elapsed * 1000);
 					free(pcb);
 					cpu_busy = 0;
 				}
@@ -439,6 +463,18 @@ void *cpu_scheduler_thread(void *args)
 					struct timespec ts_end;
 					clock_gettime(CLOCK_MONOTONIC, &pcb->ts_end);
 					double elapsed = (pcb->ts_end.tv_sec - pcb->ts_begin.tv_sec) + (pcb->ts_end.tv_nsec - pcb->ts_begin.tv_nsec) / 1000000000.0;
+					double utilization = (pcb->total_io_time / pcb->total_time) * 100;
+					double throughput = pcb->total_processes / pcb->total_time;
+					double turnaround_time = pcb->total_time / pcb->total_processes;
+					double rtime = pcb->total_time - pcb->total_io_time / pcb->total_processes;
+					printf("-------------------------------------------------------\n");
+					printf("Input File Name             : %s\n", scheduler_info->filename);
+					printf("CPU Scheduling Alg          : %s\n", scheduler_info->algorithm_type);
+					printf("CPU Utilization             : %.2lf%%\n", utilization);
+					printf("Throughput                  : %.3lf processes / ms\n", throughput);
+					printf("Avg Turnaround              : %f ms\n", pcb->PID, elapsed * 1000);
+					printf("Avg waiting time in R queue : %.1lf ms\n", rtime);
+
 					printf("Turnaround time for PID %d: %f ms\n", pcb->PID, elapsed * 1000);
 					free(pcb);
 					cpu_busy = 0;
