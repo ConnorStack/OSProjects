@@ -384,30 +384,24 @@ void *cpu_scheduler_thread(void *args)
 			pthread_mutex_lock(&ready_queue_mutex);
 			PCB *pcb = delist_from_ready_queue(ready_queue);
 			pthread_mutex_unlock(&ready_queue_mutex);
-			// print_PCB_rq(pcb);
+
 			if (pcb != NULL)
 			{
-				// Check if the PCB has remaining CPU bursts
-				// printf("Got PCB from ready queue: PID = %d\n", pcb->PID); // Debugging
 				if (pcb->cpuindex < pcb->numCPUBurst)
 				{
 					int cpu_burst = pcb->CPUBurst[pcb->cpuindex];
-					// printf("PID %d: CPU burst = %d\n", pcb->PID, cpu_burst); // Debugging
 					if (quantum_time < cpu_burst)
 					{
 						pcb->CPUBurst[pcb->cpuindex] -= quantum_time;
-						// printf("PID %d: Remaining CPU burst = %d\n", pcb->PID, pcb->CPUBurst[pcb->cpuindex]); // Debugging
 						usleep(quantum_time * 1000);
 					}
 					else
 					{
-						// printf("PID %d: CPU burst finished\n", pcb->PID); // Debugging
 						usleep(cpu_burst * 1000);
 						pcb->CPUBurst[pcb->cpuindex] = 0;
 					}
 					if (pcb->CPUBurst[pcb->cpuindex] == 0)
 					{
-						// printf("PID %d: All CPU bursts finished\n", pcb->PID); // Debugging
 						pcb->cpuindex++;
 						pthread_mutex_lock(&io_queue_mutex);
 						enlist_to_IO_queue(IO_queue, pcb);
@@ -417,7 +411,6 @@ void *cpu_scheduler_thread(void *args)
 					}
 					else
 					{
-						// printf("PID %d: Move to back of ready queue\n", pcb->PID); // Debugging
 						// PCB still has CPU bursts left, move to the back of the ready queue
 						pthread_mutex_lock(&ready_queue_mutex);
 						enlist_to_ready_queue(ready_queue, pcb);
