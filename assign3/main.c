@@ -110,15 +110,7 @@ int main(int argc, char *argv[])
 	pthread_join(tid_cpu_scheduler, NULL);
 	pthread_join(tid_io_system, NULL);
 
-	// print_rq_PCBs_in_list(ready_queue);
-	// print_ioq_PCBs_in_list(IO_queue);
-
-	// printf("Total CPU time: %f\n", total_cpu_time);
-	// printf("Total IO time: %f\n", total_io_time);	
-	// total_time = total_cpu_time + total_io_time;
-	// total_cpu_utilization = (total_cpu_time / total_time) * 100;
-	// printf("CPU utilization: %.3f%%\n", total_cpu_utilization);
-
+	printf("-------------------------------------------------------\n");
 	return 0;
 }
 
@@ -157,16 +149,23 @@ void *file_reading_thread(void *arg)
 
 			newPCB->total_processes = remaining_instructions;
 
-			for (int i = 0; i < remaining_instructions; i++) {
-                if (i % 2 == 0) {
-                    newPCB->total_cpu_time += newPCB->CPUBurst[i];
-                } else {
-                    newPCB->total_io_time += newPCB->IOBurst[i];
-                }
-            }
+			int n = 0;
+			int m = 0;
+			for (int i = 0; i < remaining_instructions; i++)
+			{
+				if (i % 2 == 0)
+				{
+					newPCB->total_cpu_time += newPCB->CPUBurst[n];
+					n++;
+				}
+				else
+				{
+					newPCB->total_io_time += newPCB->IOBurst[m];
+					m++;
+				}
+			}
 
 			newPCB->total_time = newPCB->total_io_time + newPCB->total_cpu_time;
-
 
 			// printf("Adding PCB to ready queue from file reading thread\n");
 			enlist_to_ready_queue(ready_queue, newPCB);
@@ -232,15 +231,10 @@ void *cpu_scheduler_thread(void *args)
 			{
 
 				usleep(pcb->CPUBurst[pcb->cpuindex] * 1000);
-				// double execution_time = pcb->CPUBurst[pcb->cpuindex] * 0.001;
-				// printf("Execution time is: %lf\n", execution_time);
-				// total_cpu_time += execution_time;
-				// printf("Total CPU time: %f\n", total_cpu_time);
-				
+
 				pcb->cpuindex++;
 
-
-				//Take our milisecond value and convert it to seconds
+				// Take our milisecond value and convert it to seconds
 
 				if (pcb->cpuindex >= pcb->numCPUBurst)
 				{
@@ -248,15 +242,35 @@ void *cpu_scheduler_thread(void *args)
 					struct timespec ts_end;
 					clock_gettime(CLOCK_MONOTONIC, &pcb->ts_end);
 					double elapsed = (pcb->ts_end.tv_sec - pcb->ts_begin.tv_sec) + (pcb->ts_end.tv_nsec - pcb->ts_begin.tv_nsec) / 1000000000.0;
-
+					double utilization = (pcb->total_io_time / pcb->total_time) * 100;
+					double throughput = pcb->total_processes / pcb->total_time;
+					double turnaround_time = pcb->total_time / pcb->total_processes;
+					double rtime = pcb->total_time - pcb->total_io_time / pcb->total_processes;
 					printf("-------------------------------------------------------\n");
 					printf("Input File Name             : %s\n", scheduler_info->filename);
+					printf("CPU Scheduling Alg          : %s\n", scheduler_info->algorithm_type);
+					printf("CPU Utilization             : %.2lf%%\n", utilization);
+					printf("Throughput                  : %.3lf processes / ms\n", throughput);
+					printf("Avg Turnaround              : %f ms\n", pcb->PID, elapsed * 1000);
+					printf("Avg waiting time in R queue : %.1lf ms\n", rtime);
+					// printf("-------------------------------------------------------\n");
+					// Update the total CPU and IO times
+					// total_cpu_time += pcb->total_cpu_time;
+					// total_io_time += pcb->total_io_time;
+					// total_time += pcb->total_time;
 
-					printf("Turnaround time for PID %d: %f ms\n", pcb->PID, elapsed * 1000);
+					// double utilization = (total_cpu_time / total_time) * 100;
+					// double throughput = process_count / total_time;
+					// double turnaround_time = elapsed * 1000;
 
+					// // Print the metrics
+					// printf("-------------------------------------------------------\n");
+					// printf("Input File Name             : %s\n", scheduler_info->filename);
+					// printf("CPU Scheduling Alg          : %s\n", scheduler_info->algorithm_type);
+					// printf("CPU Utilization             : %.3f%%\n", utilization);
+					// printf("Throughput                  : %.3f processes / ms\n", throughput);
+					// printf("Avg Turnaround        PID %d: %.3f ms\n", pcb->PID, turnaround_time);
 
-					printf("total time: %lf\n", pcb->total_cpu_time);
-					printf("-------------------------------------------------------n");
 					free(pcb);
 					cpu_busy = 0;
 				}
@@ -418,8 +432,8 @@ void *cpu_scheduler_thread(void *args)
 						cpu_busy = 0;
 						sem_post(&sem_cpu);
 					}
-
-				}else if (pcb->cpuindex >= pcb->numCPUBurst)
+				}
+				else if (pcb->cpuindex >= pcb->numCPUBurst)
 				{
 					printf("Final cycle of PCB\n");
 					struct timespec ts_end;
@@ -428,7 +442,6 @@ void *cpu_scheduler_thread(void *args)
 					printf("Turnaround time for PID %d: %f ms\n", pcb->PID, elapsed * 1000);
 					free(pcb);
 					cpu_busy = 0;
-					
 				}
 			}
 		}
@@ -439,7 +452,7 @@ void *cpu_scheduler_thread(void *args)
 		cpu_sch_done = 1;
 	}
 
-		return NULL;
+	return NULL;
 }
 
 void *IO_system_thread(void *args)
@@ -469,7 +482,6 @@ void *IO_system_thread(void *args)
 		total_io_time += io_time;
 		// printf("Total IO time: %f\n", total_io_time);
 		pcb->ioindex++;
-
 
 		// Simulate I/O by sleeping
 		usleep(pcb->IOBurst[pcb->ioindex] * 1000); // Convert to microseconds
