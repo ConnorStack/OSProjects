@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
-		// printf("invalid number of arguments");
+		printf("invalid number of arguments");
 	}
 	printf("\n\n");
 	printf("Alg type: %s\n", scheduler_info.algorithm_type);
@@ -167,7 +167,6 @@ void *file_reading_thread(void *arg)
 
 			newPCB->total_time = newPCB->total_io_time + newPCB->total_cpu_time;
 
-			// printf("Adding PCB to ready queue from file reading thread\n");
 			enlist_to_ready_queue(ready_queue, newPCB);
 			pthread_mutex_unlock(&ready_queue_mutex);
 			sem_post(&sem_cpu);
@@ -176,11 +175,9 @@ void *file_reading_thread(void *arg)
 		{
 			int milliseconds = get_next_token();
 			usleep(milliseconds * 1000);
-			// printf("sleep found\n");
 		}
 		else if (strcmp(first_word, "stop") == 0)
 		{
-			// printf("stop found\n");
 			break;
 		}
 		else
