@@ -1,7 +1,7 @@
 #ifndef PCB_H
 #define PCB_H
 
-#include <time.h> // Include necessary headers
+#include <time.h> 
 
 typedef struct PCB {
     int PID, PR;
@@ -10,9 +10,11 @@ typedef struct PCB {
     int cpuindex, ioindex;
     struct timespec ts_begin, ts_end;
     struct PCB *prev, *next;
-    char* scheduling_algorithm; //this may not be necessary
-    // more fields for performance measures
-    // use the system time to determine how much waited, etc.
+
+    int total_processes;
+    double total_cpu_time;
+    double total_io_time;
+    double total_time;
 } PCB;
 
 #endif
