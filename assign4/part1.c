@@ -28,8 +28,8 @@ int main(int argc, char *argv[]){
         size_t num_ulongs = bytes_read / sizeof(unsigned long);
         unsigned long *ulongs = (unsigned long *)buffer;
 
-        for(size_t i = 0; i < bytes_read; i++){
-            printf("0x%lx\n", ulongs[i]);
+        for(size_t i = 0; i < num_ulongs; i++){
+            printf("#%zu : %lx\n", i+1, ulongs[i]);
         }
         
     }
