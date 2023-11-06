@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
         }
 
             // Extract page number (pnum) and offset (dnum)
-            unsigned long pnum = LA >> 7;   // Right shift to get the page number
+            unsigned long pnum = LA >> d;   // Right shift to get the page number
             unsigned long dnum = LA & 0x7F; // Mask to get the offset
 
             // Use page number (pnum) to find the frame number (fnum) in the page table
