@@ -1,0 +1,14 @@
+1. List all of the people that you have collaborated with on this assignment. For each person indicate the level of collaboration (small, medium, large). Also write a few sentences describing what was discussed. Indicate whether you were mainly giving help or receiving help.
+
+I worked alone
+
+2. Do you think everything you did is correct?
+
+No, I think I eventually understood how the threads were working together in their respective consumer/producer roles. I did not understand how we were supposed to actually implement the metrics. CPU utilization, Throughput, Turnaround time, and Waiting time in Ready Queue are probably wrong. I spent so much time getting everything else working that I couldn't reasonably spend much more time hammering this out. I 
+
+3. If not, give a brief description of what is working and what progress was made on the part that is not working.
+I just did basic arithmatic on the given CPU and IO burst values, not any real time stamp metrics. Except for the time stamp for the PCB itself. I wasnt sure if this is what we were supposed to use or not.
+
+4. Comments (e.g., what were the challenges, how to make this assignment more interesting etc.) 
+
+***!!! I have no idea why I can't get the makefile to work on the fox servers. I have tried everything I can think of. It works fine for me but it does not work on those god forsaken dinosaur servers.

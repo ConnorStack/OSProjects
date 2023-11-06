@@ -1,3 +1,4 @@
+
 /*
  * Program is built to demonstrate understanding of threads and to time the runtime
  * of threaded vs non-threaded implementations
