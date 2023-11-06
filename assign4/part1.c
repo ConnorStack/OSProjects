@@ -2,9 +2,12 @@
 #include <stdio.h>
 
 int main(int argc, char *argv[]){
-    printf("Hello world\n");
-    // FILE * fptr = fopen("part1testsequence", "rb");
-    FILE * fptr = fopen("part1sequence", "rb");
+    unsigned long LA, PA;
+    int PT[8]={2, 4, 1, 7, 3, 5, 6, -1};
+    
+    FILE * fptr = fopen("infiletest", "rb");
+    // FILE * fptr = fopen("infile", "rb");
+
     if(fptr == NULL){
         perror("could not open file\n");
     }
@@ -13,8 +16,7 @@ int main(int argc, char *argv[]){
     size_t buffer_size = sizeof(buffer);
 
     while(1){
-        // size_t bytes_read = fread(buffer, 1, sizeof(buffer), fptr);
-        unsigned long bytes_read = (unsigned long)fread(buffer, 1, sizeof(buffer), fptr);
+        unsigned long bytes_read = (unsigned long)fread(buffer, 1, buffer_size, fptr);
 
         if(bytes_read == 0){
             if(feof(fptr)){
@@ -31,7 +33,6 @@ int main(int argc, char *argv[]){
         for(size_t i = 0; i < num_ulongs; i++){
             printf("#%zu : %lx\n", i+1, ulongs[i]);
         }
-        
     }
 
     fclose(fptr);
