@@ -90,9 +90,9 @@ int main(int argc, char *argv[])
     //     }
     //     printf("Read PA: %lx\n", read_PA);
     // }
+    // 
+    // fclose(verify_file);
     //-------------------------------------------
-
-    fclose(verify_file);
 
     return 0;
 }
