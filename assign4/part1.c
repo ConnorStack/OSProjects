@@ -6,9 +6,11 @@ int main(int argc, char *argv[])
     unsigned long LA, PA;
     int PT[8] = {2, 4, 1, 7, 3, 5, 6, -1};
     unsigned int p=5, f=3, d=7;
+    char* infile_arg = argv[1];
+    char* outfile_arg = argv[2];
 
-    FILE *infile = fopen("infiletest", "rb");
-    FILE *outfile = fopen("outfile", "wb");
+    FILE *infile = fopen(infile_arg, "rb");
+    FILE *outfile = fopen(outfile_arg, "wb");
     // FILE * fptr = fopen("infile", "rb");
 
     if (infile == NULL)
@@ -65,6 +67,32 @@ int main(int argc, char *argv[])
 
     fclose(infile);
     fclose(outfile);
+
+    //-------------------------------------------
+    // FILE *verify_file = fopen(outfile_arg, "rb");
+
+    // if (verify_file == NULL) {
+    //     perror("could not open output file for verification\n");
+    //     return 1;
+    // }
+
+    // printf("Verifying contents of the output file:\n");
+    // while (1) {
+    //     unsigned long read_PA;
+    //     size_t read_result = fread(&read_PA, sizeof(read_PA), 1, verify_file);
+    //     if (read_result == 0) {
+    //         if (feof(verify_file)) {
+    //             break;
+    //         } else {
+    //             perror("Error reading output file for verification\n");
+    //             break;
+    //         }
+    //     }
+    //     printf("Read PA: %lx\n", read_PA);
+    // }
+    //-------------------------------------------
+
+    fclose(verify_file);
 
     return 0;
 }
