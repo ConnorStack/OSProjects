@@ -1,0 +1,75 @@
+6 - 6
+5 - 5
+4 - 3 
+3 - 7
+2 - 1
+1 - 4
+0 - 2
+
+I wrote PA = fnum << d + dnum;      Actually, I should have written  PA = (fnum << d) + dnum;     or   PA = fnum << d | dnum;      right?
+
+I used printf("%lx ", PA);  Actually you should also use printf("%lx", LA); to see what you read from the input file:  the first two values of LA are 44 and 224 in HEX. 
+I got some questions that even though unsigned long is 8 bytes you don't see leading 0's. Actually, in computer's memory, LA and PA occupy 8-byte space and hold all the leading 0's. So, you don't need to do anything. Just look at LA and PA as a 64-bit binary numbers! Also we read/write them from/to files in binary format, so all 8 bytes will be in the files as well. However, printf ignores these leading 0's; but don't worry about that because we just use printf to show the values for us. If you like to see all leading 0's then use the following printfs: printf("%016lx\n", LA); ... printf("%016lx\n", PA);
+
+Also I did not include error checkings. You should check what the I/O functions return.. For example, it is a good idea to use  if(fread(&LA, sizeof(unsigned long), 1, fp) != 1) break; instead of just fread(&LA, sizeof(unsigned long), 1, fp);  right?
+
+
+Each logical address (LA) in infile has already been stored as 8-byte (unsigned long) value in binary format. So, don't open infile with a text editor because the content will look like garbage. Instead, your program part1 should open the infile in binary format and read each logical address into an unsigned long variable LA.  Then it maps/converts each LA to the corresponding physical address (PA)  using the page table (PT) given in the above figure. It then writes each physical address PA into outfile specified as the 2nd command-line parameter. The outfile must have the same format as the given infile. So, each physical address must be written in binary format as an 8-byte (unsigned long) value into the output file.  Clearly, you need to first declare the followings in your code:
+
+unsigned long LA, PA;
+int PT[8]={2, 4, 1, 7, 3, 5, 6, -1}; // to represent the fixed page table above . 
+Then your program part1 simply reads each LA from infile, maps/converts it to PA, and write each PA into outfile (here you can use fopen/fread/fwrite or open/read/write to read them in binary format). Basically the program part2 reads a logical address (LA) and finds the page number (pnum) by shifting LA to right d=7 times, and offset (dnum) by masking LA with a mask consisting of d=7 1's which is 0x7F in HEX format (e.g., pnum = LA >> d; dnum = LA & 0x7F; ).  Then get frame number from the page table and find the PA  by shifting fnum to left d=7 times and adding offset (e.g., fnum = PT[pnum]; PA = (fnum << d) + dnum; )
+
+Given a file of "Logical Addresses" I want to determine the last pnum and fnum bits, where fnum is the last 7 bits of the number (in this case f represents offset), and the next to last 5 bits represent pnum, (page).
+-----------------------------------------
+part 2
+
+You also need to initially set all valid/invalid fields in page table to 0 here. But, when writing the code (12:50), I did not write this initialization step and just started with fopen... next.  you will take care of initialization step by simply setting all valid/invalid values to 0 before fopen...,
+Also I did not include error checking. You should check what the I/O functions return.. For example, it is a good idea to use  if(fread(&LA, sizeof(unsigned long), 1, fp) != 1) break; instead of just fread(&LA, sizeof(unsigned long), 1, fp);  right?
+
+In instructions it says PTE structure, my struct is named page_table_entry with contents, f_num and vi_bit instead of 
+
+
+
+fopen 
+while not end of file
+fread the LA (logical address)
+CLK++
+pnum = LA >> d
+dnum = LA & 0x07F
+
+if(PTE[pnum].valid_bit == 1){ //means it is a valid bit
+fnum = PTE[pnum].frame_number
+PA = (fnum << d) + dnum
+fwrite PA //also printf lx
+count[fnum] = CLK //Not sure where count came from
+}
+else
+{ //find a frame that can be used for the page
+x = find_empty_frame()
+
+    if (x > 0)
+    { //
+    PTE[pnum].frame_number = x;
+    PTE[pnum].valud_bit = 1;
+    fnum = PTE[pnum].frame_number
+    PA = (fnum << d) + dnum
+    fwrite PA //also printf lx
+    revmap[x] = pnum
+    count[fnum] = CLK //Not sure where count came from
+    }else{ //x < 0, not successful, no open frame, need to use LRU
+    
+y = select_LRU_victim() ;//function to search LRU and find the minimum, return the index of the minimum
+//use the index found in the select_LRU_victim to use as index in ReverseMap, to find the correct page
+PTE[revmap[y]].valid_bit = 0; //invalidate 
+PTE[pnum].frame_number = y;
+PTE[pnum].valid_bit = 1;
+fnum = PTE[pnum].frame_number;
+PA = PA = (fnum << d) + dnum
+
+    }
+}
+
+
+
+

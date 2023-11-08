@@ -18,14 +18,14 @@ int main(int argc, char *argv[])
         perror("could not open file\n");
     }
 
-    unsigned char buffer[1024];
+    unsigned char buffer[1024]; //probably shorten this
     size_t buffer_size = sizeof(buffer);
 
     while (1)
     {
-        unsigned long bytes_read = (unsigned long)fread(buffer, 1, buffer_size, infile);
+        unsigned long bits_read = (unsigned long)fread(buffer, 1, buffer_size, infile);
 
-        if (bytes_read == 0)
+        if (bits_read == 0)
         {
             if (feof(infile))
             {
@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
             }
         }
 
-        size_t logical_address_count = bytes_read / sizeof(unsigned long);
+        size_t logical_address_count = bits_read / sizeof(unsigned long);
         unsigned long *logical_address_array = (unsigned long *)buffer;
 
         for (size_t i = 0; i < logical_address_count; i++)
