@@ -11,6 +11,10 @@ int main(int argc, char *argv[])
 
     FILE *infile = fopen(infile_arg, "rb");
     FILE *outfile = fopen(outfile_arg, "wb");
+
+        if(infile == NULL || outfile == NULL ){
+        perror("Failed to open files\n");
+    }
     // FILE * fptr = fopen("infile", "rb");
 
     if (infile == NULL)
@@ -23,9 +27,9 @@ int main(int argc, char *argv[])
 
     while (1)
     {
-        unsigned long bits_read = (unsigned long)fread(buffer, 1, buffer_size, infile);
+        unsigned long bytes_read = fread(buffer, 1, buffer_size, infile); //does this need to be unsigned long?
 
-        if (bits_read == 0)
+        if (bytes_read == 0)
         {
             if (feof(infile))
             {
@@ -38,7 +42,7 @@ int main(int argc, char *argv[])
             }
         }
 
-        size_t logical_address_count = bits_read / sizeof(unsigned long);
+        size_t logical_address_count = bytes_read / sizeof(unsigned long);
         unsigned long *logical_address_array = (unsigned long *)buffer;
 
         for (size_t i = 0; i < logical_address_count; i++)
@@ -69,29 +73,29 @@ int main(int argc, char *argv[])
     fclose(outfile);
 
     //-------------------------------------------
-    // FILE *verify_file = fopen(outfile_arg, "rb");
+    FILE *verify_file = fopen(outfile_arg, "rb");
 
-    // if (verify_file == NULL) {
-    //     perror("could not open output file for verification\n");
-    //     return 1;
-    // }
+    if (verify_file == NULL) {
+        perror("could not open output file for verification\n");
+        return 1;
+    }
 
-    // printf("Verifying contents of the output file:\n");
-    // while (1) {
-    //     unsigned long read_PA;
-    //     size_t read_result = fread(&read_PA, sizeof(read_PA), 1, verify_file);
-    //     if (read_result == 0) {
-    //         if (feof(verify_file)) {
-    //             break;
-    //         } else {
-    //             perror("Error reading output file for verification\n");
-    //             break;
-    //         }
-    //     }
-    //     printf("Read PA: %lx\n", read_PA);
-    // }
-    // 
-    // fclose(verify_file);
+    printf("Verifying contents of the output file:\n");
+    while (1) {
+        unsigned long read_PA;
+        size_t read_result = fread(&read_PA, sizeof(read_PA), 1, verify_file);
+        if (read_result == 0) {
+            if (feof(verify_file)) {
+                break;
+            } else {
+                perror("Error reading output file for verification\n");
+                break;
+            }
+        }
+        printf("Read PA: %lx\n", read_PA);
+    }
+    
+    fclose(verify_file);
     //-------------------------------------------
 
     return 0;

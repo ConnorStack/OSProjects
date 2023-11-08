@@ -17,8 +17,7 @@ int main(int argc, char *argv[])
     unsigned int p = 5, f = 3, d = 7;
     unsigned int pnum, fnum, dnum;
     int CLK = 0;
-    // int freeframes[8] = {0, 1, 1, 1, 1, 1, 1, 1};
-    int freeframes[4] = {0, 3, 2, 1};
+    int freeframes[8] = {0, 1, 1, 1, 1, 1, 1, 1};
     int LRUcount[8] = {0};
     int revmap[8] = {-1};
 
@@ -27,26 +26,40 @@ int main(int argc, char *argv[])
     char *infile_arg = argv[1];
     FILE *infile = fopen(infile_arg, "rb");
 
+    char *outfile_arg = argv[2];
+    FILE *outfile = fopen(outfile_arg, "wb");
+    if(infile == NULL || outfile == NULL ){
+        perror("Failed to open files\n");
+    }
+
     char *buffer[1024];
 
     int freeframes_length = sizeof(freeframes) / sizeof(freeframes[0]);
     printf("free frames length: %d\n", freeframes_length);
 
-    // for (int i = 0; i < 8; i++)
-    // {
-    //     printf("%d\n", freeframes[i]);
-    // }
-
     int emptyframe = find_empty_frame(freeframes, freeframes_length);
     printf("empty frame: %d\n", emptyframe);
 
-    // while (feof(infile))
-    // {
-    //     size_t infile_count = fread(buffer, 1, sizeof(buffer), infile);
-    //     CLK++;
-    //     pnum = LA >> d;
-    //     dnum = LA & 0x07F;
-    // }
+    // page_table_entry PTE;
+    while (feof(infile))
+    {
+        page_table_entry *PTE = (page_table_entry *)malloc(sizeof(page_table_entry));
+        if (PTE == NULL)
+        {
+            perror("Memory allocation failed");
+            return 1;
+        }
+
+        size_t infile_count = fread(buffer, 1, sizeof(buffer), infile);
+        CLK++;
+        pnum = LA >> d;
+        dnum = LA & 0x07F;
+        if (PTE[pnum].valid_bit == 1){ // there is a free page available
+            fnum = PTE[pnum].frame_number;
+            PA = (fnum << d) + dnum;
+            fwrite(&PA, sizeof(PA), 1, outfile);
+        }
+    }
 
     return 0;
 }
