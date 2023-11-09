@@ -24,12 +24,12 @@ int main(int argc, char *argv[])
         perror("could not open file\n");
     }
 
-    unsigned char buffer[16]; // probably shorten this
+    unsigned char buffer[16]; 
     size_t buffer_size = sizeof(buffer);
 
     while (1)
     {
-        unsigned long bytes_read = fread(buffer, 1, buffer_size, infile); // does this need to be unsigned long?
+        unsigned long bytes_read = fread(buffer, 1, buffer_size, infile); 
 
         if (bytes_read == 0)
         {
@@ -56,17 +56,12 @@ int main(int argc, char *argv[])
                 continue;
             }
 
-            // Extract page number (pnum) and offset (dnum)
-            pnum = LA >> d;   // Right shift to get the page number
-            dnum = LA & 0x7F; // Mask to get the offset
+            pnum = LA >> d;  
+            dnum = LA & 0x7F;
 
-            // Use page number (pnum) to find the frame number (fnum) in the page table
             fnum = PT[pnum];
-
-            // Calculate the physical address (PA)
             PA = (fnum << 7) + dnum;
 
-            // Write the physical address (PA) to the output file in binary format
             printf("The LA is %lx and Translated PA is %lx\n", LA, PA);
             fwrite(&PA, sizeof(PA), 1, outfile);
         }
@@ -74,38 +69,6 @@ int main(int argc, char *argv[])
 
     fclose(infile);
     fclose(outfile);
-
-    //-------------------------------------------
-    FILE *verify_file = fopen(outfile_arg, "rb");
-
-    if (verify_file == NULL)
-    {
-        perror("could not open output file for verification\n");
-        return 1;
-    }
-
-    printf("Verifying contents of the output file:\n");
-    while (1)
-    {
-        unsigned long read_PA;
-        size_t read_result = fread(&read_PA, sizeof(read_PA), 1, verify_file);
-        if (read_result == 0)
-        {
-            if (feof(verify_file))
-            {
-                break;
-            }
-            else
-            {
-                perror("Error reading output file for verification\n");
-                break;
-            }
-        }
-        printf("Read PA: %lx\n", read_PA);
-    }
-
-    fclose(verify_file);
-    //-------------------------------------------
 
     return 0;
 }
