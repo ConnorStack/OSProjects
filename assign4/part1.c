@@ -19,11 +19,6 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    if (infile == NULL)
-    {
-        perror("could not open file\n");
-    }
-
     unsigned char buffer[16]; 
     size_t buffer_size = sizeof(buffer);
 
