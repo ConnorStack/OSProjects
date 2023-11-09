@@ -106,20 +106,18 @@ int main(int argc, char *argv[])
                 PTE[pnum].valid_bit = 1;
                 fnum = PTE[pnum].frame_number;
                 PA = (fnum << d) + dnum;
-                fwrite(&PA, sizeof(PA), 1, outfile);
                 printf("(LRU victim condition) The LA is %lx\n", LA);
+                printf("pnum: %d, dnum: %d, fnum: %d\n", pnum, dnum, fnum);
+                printf("PA: %lx\n", PA);
+                fwrite(&PA, sizeof(PA), 1, outfile);
                 LRUcount[fnum] = CLK;
                 revmap[fnum] = pnum;
             }
         }
-        // printf("pnum : %d\n", pnum);
-        // printf("dnum : %d\n", dnum);
-        // printf("fnum : %d\n", fnum);
         print_freeframes(freeframes, 8);
         print_LRU_count(LRUcount, 8);
         print_reverse_map(revmap, 8);
         printf("\n\n");
-        // infile_count = fread(buffer, 1, sizeof(buffer), infile);
     }
 
     return 0;
