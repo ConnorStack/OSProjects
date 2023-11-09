@@ -28,7 +28,6 @@ int main(int argc, char *argv[])
     page_table_entry PTE[32];
     for (int i = 0; i < 32; i++)
     {
-        // PTE[i].frame_number = -1;
         PTE[i].valid_bit = 0;
     }
 
@@ -43,18 +42,14 @@ int main(int argc, char *argv[])
         perror("Failed to open files\n");
     }
 
-    char *buffer[1024];
+    // char *buffer[1024];
 
     int freeframes_length = sizeof(freeframes) / sizeof(freeframes[0]);
     int LRUcount_length = sizeof(LRUcount) / sizeof(LRUcount[0]);
 
-    // size_t infile_count = fread(buffer, 1, sizeof(buffer), infile);
-    // if(fread(&LA, sizeof(unsigned long), 1, fp) != 1)
     while (1) //(infile_count > 0) // feof(infile)
     {
 
-        // size_t infile_count = fread(buffer, 1, sizeof(buffer), infile);
-        // if(fread(&LA, sizeof(unsigned long), 1, fp) != 1);
         if (fread(&LA, sizeof(unsigned long), 1, infile) != 1)
         {
             if (feof(infile))
@@ -68,8 +63,6 @@ int main(int argc, char *argv[])
                 break;
             }
         }
-        // unsigned long *logical_address_array = (unsigned long *)buffer;
-        // LA = logical_address_array[0]; // Assuming you are reading a single logical address at a time
 
         CLK++;
 
@@ -86,7 +79,7 @@ int main(int argc, char *argv[])
             LRUcount[fnum] = CLK;
         }
         else
-        {
+        { //we 
             int empty_frame = find_empty_frame(freeframes, freeframes_length);
             printf("Empty frame found at: %d\n", empty_frame);
             if (empty_frame > 0)
