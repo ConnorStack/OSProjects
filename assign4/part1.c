@@ -5,14 +5,15 @@ int main(int argc, char *argv[])
 {
     unsigned long LA, PA;
     int PT[8] = {2, 4, 1, 7, 3, 5, 6, -1};
-    unsigned int p=5, f=3, d=7;
-    char* infile_arg = argv[1];
-    char* outfile_arg = argv[2];
+    unsigned int p = 5, f = 3, d = 7;
+    char *infile_arg = argv[1];
+    char *outfile_arg = argv[2];
 
     FILE *infile = fopen(infile_arg, "rb");
     FILE *outfile = fopen(outfile_arg, "wb");
 
-        if(infile == NULL || outfile == NULL ){
+    if (infile == NULL || outfile == NULL)
+    {
         perror("Failed to open files\n");
     }
     // FILE * fptr = fopen("infile", "rb");
@@ -22,12 +23,12 @@ int main(int argc, char *argv[])
         perror("could not open file\n");
     }
 
-    unsigned char buffer[1024]; //probably shorten this
+    unsigned char buffer[1024]; // probably shorten this
     size_t buffer_size = sizeof(buffer);
 
     while (1)
     {
-        unsigned long bytes_read = fread(buffer, 1, buffer_size, infile); //does this need to be unsigned long?
+        unsigned long bytes_read = fread(buffer, 1, buffer_size, infile); // does this need to be unsigned long?
 
         if (bytes_read == 0)
         {
@@ -49,9 +50,10 @@ int main(int argc, char *argv[])
         {
             unsigned long LA = logical_address_array[i];
 
-            if (LA == 0) {
-            continue;
-        }
+            if (LA == 0)
+            {
+                continue;
+            }
 
             // Extract page number (pnum) and offset (dnum)
             unsigned long pnum = LA >> d;   // Right shift to get the page number
@@ -75,26 +77,32 @@ int main(int argc, char *argv[])
     //-------------------------------------------
     FILE *verify_file = fopen(outfile_arg, "rb");
 
-    if (verify_file == NULL) {
+    if (verify_file == NULL)
+    {
         perror("could not open output file for verification\n");
         return 1;
     }
 
     printf("Verifying contents of the output file:\n");
-    while (1) {
+    while (1)
+    {
         unsigned long read_PA;
         size_t read_result = fread(&read_PA, sizeof(read_PA), 1, verify_file);
-        if (read_result == 0) {
-            if (feof(verify_file)) {
+        if (read_result == 0)
+        {
+            if (feof(verify_file))
+            {
                 break;
-            } else {
+            }
+            else
+            {
                 perror("Error reading output file for verification\n");
                 break;
             }
         }
         printf("Read PA: %lx\n", read_PA);
     }
-    
+
     fclose(verify_file);
     //-------------------------------------------
 

@@ -28,17 +28,18 @@ int main(int argc, char *argv[])
 
     char *outfile_arg = argv[2];
     FILE *outfile = fopen(outfile_arg, "wb");
-    if(infile == NULL || outfile == NULL ){
+
+    if (infile == NULL || outfile == NULL)
+    {
         perror("Failed to open files\n");
     }
 
     char *buffer[1024];
 
     int freeframes_length = sizeof(freeframes) / sizeof(freeframes[0]);
-    printf("free frames length: %d\n", freeframes_length);
-
-    int emptyframe = find_empty_frame(freeframes, freeframes_length);
-    printf("empty frame: %d\n", emptyframe);
+    // printf("free frames length: %d\n", freeframes_length);
+    // int emptyframe = find_empty_frame(freeframes, freeframes_length);
+    // printf("empty frame: %d\n", emptyframe);
 
     // page_table_entry PTE;
     while (feof(infile))
@@ -53,11 +54,28 @@ int main(int argc, char *argv[])
         size_t infile_count = fread(buffer, 1, sizeof(buffer), infile);
         CLK++;
         pnum = LA >> d;
+        print("pnum : %d\n", pnum);
         dnum = LA & 0x07F;
-        if (PTE[pnum].valid_bit == 1){ // there is a free page available
+        if (PTE[pnum].valid_bit == 1)
+        { // there is a free page available
             fnum = PTE[pnum].frame_number;
             PA = (fnum << d) + dnum;
             fwrite(&PA, sizeof(PA), 1, outfile);
+            printf("(valid bit set condition) The LA is %lx\n", LA);
+            LRUcount[fnum] = CLK; 
+        } else {
+            int empty_frame = find_empty_frame(freeframes, freeframes_length);
+            if(empty_frame > 0) { //frame found in freeframes
+                PTE[pnum].frame_number = empty_frame;
+                PTE[pnum].valid_bit = 1;
+                fnum = (fnum << d) + dnum;
+                fwrite(&PA, sizeof(PA), 1, outfile);
+                printf("(empty frame found condition) The LA is %lx\n", LA);
+                revmap[empty_frame] = pnum;
+                
+            } else { //freeframes is full, determine a victim to free space
+
+            }
         }
     }
 
