@@ -4,6 +4,7 @@
 int main(int argc, char *argv[])
 {
     unsigned long LA, PA;
+    unsigned long pnum, fnum, dnum;
     int PT[32] = {2, 4, 1, 7, 3, 5, 6, -1};
     unsigned int p = 5, f = 3, d = 7;
     char *infile_arg = argv[1];
@@ -17,7 +18,6 @@ int main(int argc, char *argv[])
         perror("Failed to open files\n");
         return 1;
     }
-    // FILE * fptr = fopen("infile", "rb");
 
     if (infile == NULL)
     {
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
 
         for (size_t i = 0; i < logical_address_count; i++)
         {
-            unsigned long LA = logical_address_array[i];
+            LA = logical_address_array[i];
 
             if (LA == 0)
             {
@@ -57,14 +57,14 @@ int main(int argc, char *argv[])
             }
 
             // Extract page number (pnum) and offset (dnum)
-            unsigned long pnum = LA >> d;   // Right shift to get the page number
-            unsigned long dnum = LA & 0x7F; // Mask to get the offset
+            pnum = LA >> d;   // Right shift to get the page number
+            dnum = LA & 0x7F; // Mask to get the offset
 
             // Use page number (pnum) to find the frame number (fnum) in the page table
-            unsigned long fnum = PT[pnum];
+            fnum = PT[pnum];
 
             // Calculate the physical address (PA)
-            unsigned long PA = (fnum << 7) + dnum;
+            PA = (fnum << 7) + dnum;
 
             // Write the physical address (PA) to the output file in binary format
             printf("The LA is %lx and Translated PA is %lx\n", LA, PA);
