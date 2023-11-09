@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
             LRUcount[fnum] = CLK;
         }
         else
-        { // we
+        { 
             int empty_frame = find_empty_frame(freeframes, freeframes_length);
             printf("Empty frame found at: %d\n", empty_frame);
             if (empty_frame > 0)
@@ -129,7 +129,6 @@ int find_empty_frame(int freeframes[], int freeframes_length)
 
     for (int i = 1; i < freeframes_length; i++)
     {
-        // printf("%d\n", i);
         if (freeframes[i] == 1)
         {
             free_index = i;
