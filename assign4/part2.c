@@ -42,12 +42,10 @@ int main(int argc, char *argv[])
         perror("Failed to open files\n");
     }
 
-    // char *buffer[1024];
-
     int freeframes_length = sizeof(freeframes) / sizeof(freeframes[0]);
     int LRUcount_length = sizeof(LRUcount) / sizeof(LRUcount[0]);
 
-    while (1) //(infile_count > 0) // feof(infile)
+    while (1)
     {
 
         if (fread(&LA, sizeof(unsigned long), 1, infile) != 1)
@@ -68,18 +66,20 @@ int main(int argc, char *argv[])
 
         pnum = LA >> d;
         dnum = LA & 0x07F;
-        
 
         if (PTE[pnum].valid_bit == 1)
         { // there is a free page available
             fnum = PTE[pnum].frame_number;
             PA = (fnum << d) + dnum;
-            fwrite(&PA, sizeof(PA), 1, outfile);
             printf("(valid bit set condition) The LA is %lx\n", LA);
+            printf("pnum: %d, dnum: %d, fnum: %d\n", pnum, dnum, fnum);
+            printf("PA: %lx\n", PA);
+            fwrite(&PA, sizeof(PA), 1, outfile);
+
             LRUcount[fnum] = CLK;
         }
         else
-        { //we 
+        { // we
             int empty_frame = find_empty_frame(freeframes, freeframes_length);
             printf("Empty frame found at: %d\n", empty_frame);
             if (empty_frame > 0)
