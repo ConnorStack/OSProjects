@@ -1,0 +1,8 @@
+The LA is 44 and Translated PA is 0
+The LA is 224 and Translated PA is 8
+The LA is 168 and Translated PA is 16
+The LA is 28C and Translated PA is 24
+The LA is DC and Translated PA is 32
+The LA is 234 and Translated PA is 40
+The LA is 98 and Translated PA is 48
+The LA is D0 and Translated PA is 56

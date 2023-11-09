@@ -4,7 +4,7 @@
 int main(int argc, char *argv[])
 {
     unsigned long LA, PA;
-    int PT[8] = {2, 4, 1, 7, 3, 5, 6, -1};
+    int PT[32] = {2, 4, 1, 7, 3, 5, 6, -1};
     unsigned int p = 5, f = 3, d = 7;
     char *infile_arg = argv[1];
     char *outfile_arg = argv[2];
@@ -15,6 +15,7 @@ int main(int argc, char *argv[])
     if (infile == NULL || outfile == NULL)
     {
         perror("Failed to open files\n");
+        return 1;
     }
     // FILE * fptr = fopen("infile", "rb");
 
@@ -23,7 +24,7 @@ int main(int argc, char *argv[])
         perror("could not open file\n");
     }
 
-    unsigned char buffer[1024]; // probably shorten this
+    unsigned char buffer[16]; // probably shorten this
     size_t buffer_size = sizeof(buffer);
 
     while (1)
