@@ -49,8 +49,8 @@ int main(int argc, char *argv[])
     int LRUcount_length = sizeof(LRUcount) / sizeof(LRUcount[0]);
 
     // size_t infile_count = fread(buffer, 1, sizeof(buffer), infile);
-    // if(fread(&LA, sizeof(unsigned long), 1, fp) != 1) 
-    while (1)//(infile_count > 0) // feof(infile)
+    // if(fread(&LA, sizeof(unsigned long), 1, fp) != 1)
+    while (1) //(infile_count > 0) // feof(infile)
     {
 
         // size_t infile_count = fread(buffer, 1, sizeof(buffer), infile);
@@ -75,8 +75,7 @@ int main(int argc, char *argv[])
 
         pnum = LA >> d;
         dnum = LA & 0x07F;
-        printf("pnum : %d\n", pnum);
-        printf("dnum : %d\n", dnum);
+        
 
         if (PTE[pnum].valid_bit == 1)
         { // there is a free page available
@@ -89,7 +88,7 @@ int main(int argc, char *argv[])
         else
         {
             int empty_frame = find_empty_frame(freeframes, freeframes_length);
-
+            printf("Empty frame found at: %d\n", empty_frame);
             if (empty_frame > 0)
             { // frame found in freeframes
                 PTE[pnum].frame_number = empty_frame;
@@ -100,6 +99,11 @@ int main(int argc, char *argv[])
                 printf("(empty frame found condition) The LA is %lx\n", LA);
                 revmap[empty_frame] = pnum;
                 LRUcount[fnum] = CLK;
+
+                printf("Frame allocated: %d\n", empty_frame);
+                printf("Updated PTE[pnum]: frame_number=%d, valid_bit=%d\n", PTE[pnum].frame_number, PTE[pnum].valid_bit);
+                printf("fnum: %d\n", fnum);
+                printf("PA: %lx\n", PA);
             }
             else
             { // freeframes is full, determine a victim to free space
@@ -117,10 +121,11 @@ int main(int argc, char *argv[])
         }
         // printf("pnum : %d\n", pnum);
         // printf("dnum : %d\n", dnum);
-        printf("fnum : %d\n", fnum);
+        // printf("fnum : %d\n", fnum);
         print_freeframes(freeframes, 8);
         print_LRU_count(LRUcount, 8);
         print_reverse_map(revmap, 8);
+        printf("\n\n");
         // infile_count = fread(buffer, 1, sizeof(buffer), infile);
     }
 
@@ -137,6 +142,7 @@ int find_empty_frame(int freeframes[], int freeframes_length)
         if (freeframes[i] == 1)
         {
             free_index = i;
+            freeframes[i] = 0;
             break;
         }
     }
