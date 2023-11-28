@@ -14,7 +14,7 @@ volatile sig_atomic_t sigusr2_received = 0;
 
 int main() {
     // Print process id (PID)                         (1pt)
-// <CODE>
+    printf("Process ID (PID): %d\n", getpid());
 
     // Block the SIGUSR1 signal                            (1pt) 
 // <CODE>
